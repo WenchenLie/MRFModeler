@@ -141,7 +141,7 @@ proc PanelZone {Floor Axis X Y E mu fy A_stiff I_stiff d_col d_beam tp tf bf tra
 
     # Construct panel zone spring
     if {$type_ == 1} {
-        set spring_id [expr 110000+$Floor*10000+$Axis*100];
+        set spring_id [expr 11000000+$Floor*10000+$Axis*100];
         uniaxialMaterial Hysteretic [expr $spring_id+1]  $M1 $gamma1 $M2 $gamma2 $M3 $gamma3 [expr -$M1] [expr -$gamma1] [expr -$M2] [expr -$gamma2] [expr -$M3] [expr -$gamma3] 0.25 0.75 0. 0. 0.;
         uniaxialMaterial MinMax $spring_id [expr $spring_id+1] -min [expr -$gammaU] -max $gammaU;
         element zeroLength $spring_id $node_TR $node_RT -mat $spring_id -dir 6;

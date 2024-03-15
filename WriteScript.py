@@ -1117,7 +1117,7 @@ class WriteScript:
                 self.ele(node_C, node_T, c, ele_T)
         # panel zone spring
         if type_ == 1:
-            Id = 110000 + Floor * 10000 + Axis * 100
+            Id = 11000000 + Floor * 10000 + Axis * 100
             self.zero_length(node_TR, node_RT, 'red', Id)
 
 
