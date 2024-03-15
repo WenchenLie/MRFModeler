@@ -1,0 +1,82 @@
+Moment resisting frame model information
+Frame name: 4SMRF
+Generation time: 2024-03-16 01:33:50.625000
+All units are in [N, mm, t]
+
+
+--------------- 1. Building Geometry ---------------
+
+Building height: 16300
+Number of story: 4
+Number of bays: 3
+Plane dimensions [mm]: 42700 x 30500
+Number of moment frames: 2
+External column tributary area [mm]: 9150 x 3050
+Internal column tributary area [mm]: 6100 x 3050
+
+
+--------------- 2. Structural Components ---------------
+
+Beam sections:
+ Floor  Bay-1  Bay-2  Bay-3
+     2 W24x76 W24x76 W24x76
+     3 W24x76 W24x76 W24x76
+     4 W18x60 W18x60 W18x60
+     5 W18x60 W18x60 W18x60
+
+Column sections:
+ Story  Axis-1  Axis-2  Axis-3  Axis-4
+     1 W24x103 W24x146 W24x146 W24x103
+     2 W24x103 W24x146 W24x146 W24x103
+     3 W24x103 W24x146 W24x146 W24x103
+     4  W24x76  W24x84  W24x84  W24x76
+
+Stories with column splices: 3
+
+Doubler plate thickness [mm]:
+ Floor  Axis-1  Axis-2  Axis-3  Axis-4
+     2    6.35 23.8125 23.8125    6.35
+     3    6.35 23.8125 23.8125    6.35
+     4    6.35 22.2250 22.2250    6.35
+     5    6.35 22.2250 22.2250    6.35
+
+
+--------------- 3. Load and Material ---------------
+
+Material properties:
+	Young's modulus [MPa]: 206000
+	Nominal yield strength [MPa]: 345
+	Possion ratio: 0.3
+
+Load [MPa]:
+Story/Floor   Dead    Live  Cladding
+        1/2 0.0043 0.00240    0.0012
+        2/3 0.0043 0.00240    0.0012
+        3/4 0.0043 0.00240    0.0012
+        4/5 0.0043 0.00096    0.0012
+
+Load and mass combination coefficients:
+        Dead  Live  Cladding
+Weight  1.05  0.25      1.05
+Mass    1.00  0.00      1.00
+
+Axial compressive ratio of columns:
+Story   Axis-1   Axis-2   Axis-3   Axis-4
+   1b 0.106212 0.049895 0.049895 0.106212
+   1t 0.106212 0.049895 0.049895 0.106212
+   2b 0.078289 0.036778 0.036778 0.078289
+   2t 0.078289 0.036778 0.036778 0.078289
+   3b 0.050611 0.023775 0.023775 0.050611
+   3t 0.068460 0.041390 0.041390 0.068460
+   4b 0.031020 0.018755 0.018755 0.031020
+   4t 0.031020 0.018755 0.018755 0.031020
+
+Seiemic weight of considered 2D frame: 14367.82 kN
+Seiemic mass of considered 2D frame: 1269.71 t
+
+
+--------------- 4. Connection and Boundary Condition ---------------
+
+Base support: Fixed
+Beam-to-column connection: Fully constrained connection
+Consider panel zone deformation: Yes (Parallelogram)
