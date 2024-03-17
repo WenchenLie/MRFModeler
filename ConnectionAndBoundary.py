@@ -1,17 +1,24 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from MRFHelper import Frame
 import func
 from typing import Literal
 
 
 class ConnectionAndBoundary:
 
-    def __init__(self) -> None:
+    def __init__(self, frame: Frame) -> None:
         """Step-4:
         Connection and boundary condition
         """
+        self.frame = frame
         self.base_support = 'Fixed'
         self.beam_column_connection = 'Full'
         self.RBS_paras = (0.625, 0.75, 0.25)
         self.panel_zone_deformation = True
+        self.soil_constraint = []
+        self.rigid_disphragm = True
 
 
     def set_base_support(self, type: Literal['Fixed', 'Pinned']='Fixed'):
@@ -56,6 +63,16 @@ class ConnectionAndBoundary:
         func.check_boolean(type, name='type')
         self.panel_zone_deformation = type
 
+    def set_soil_constraint(self, floor: int):
+        """Set soil constraint at specified floor
+
+        Args:
+            floor (int): floor number with soil constraint
+        """
+        func.check_int(floor, [1, self.frame.N + 1])
+        if floor not in self.soil_constraint:
+            self.soil_constraint.append(floor)
+        
 
     def _finished(self):
         pass

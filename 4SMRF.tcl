@@ -51,10 +51,10 @@ set NStory 4;
 set NBay 3;
 set E 206000.00;
 set mu 0.3;
-set fy 345.00;
+set fy_beam 345.00;
+set fy_column 345.00;
 uniaxialMaterial Elastic 9 1.e-9;
 uniaxialMaterial Elastic 99 1.e12;
-uniaxialMaterial Steel02 666 $fy $E 0.005 18.5 0.925 0.15;
 geomTransf Linear 1;
 geomTransf PDelta 2;
 geomTransf Corotational 3;
@@ -128,10 +128,10 @@ node 10050104 [expr $Axis1 + 303.53] $Floor5;  node 10050205 [expr $Axis2 - 306.
 node 10030107 $Axis1 [expr $Floor3 + 0.5 * 4000.00];  node 10030207 $Axis2 [expr $Floor3 + 0.5 * 4000.00];  node 10030307 $Axis3 [expr $Floor3 + 0.5 * 4000.00];  node 10030407 $Axis4 [expr $Floor3 + 0.5 * 4000.00];
 
 # Beam splice ndoes
-node 10020208 [expr $Axis2 + 6100.00 / 2] $Floor2;
-node 10030208 [expr $Axis2 + 6100.00 / 2] $Floor3;
-node 10040208 [expr $Axis2 + 6100.00 / 2] $Floor4;
-node 10050208 [expr $Axis2 + 6100.00 / 2] $Floor5;
+
+
+
+
 
 
 # ----------------------------------- Elements -----------------------------------
@@ -146,33 +146,33 @@ element elasticBeamColumn 10030103 10030107 10040102 14451.58 $E [expr ($n+1)/$n
 element elasticBeamColumn 10040101 10040101 10050102 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;  element elasticBeamColumn 10040201 10040201 10050202 15935.45 $E [expr ($n+1)/$n*986468478.67] 2;  element elasticBeamColumn 10040301 10040301 10050302 15935.45 $E [expr ($n+1)/$n*986468478.67] 2;  element elasticBeamColumn 10040401 10040401 10050402 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;
 
 # Beam elements
-element elasticBeamColumn 10020104 10020104 10020205 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;  element elasticBeamColumn 10020211 10020204 10020208 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;  element elasticBeamColumn 10020212 10020208 10020305 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;  element elasticBeamColumn 10020304 10020304 10020405 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;
-element elasticBeamColumn 10030104 10030104 10030205 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;  element elasticBeamColumn 10030211 10030204 10030208 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;  element elasticBeamColumn 10030212 10030208 10030305 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;  element elasticBeamColumn 10030304 10030304 10030405 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;
-element elasticBeamColumn 10040104 10040104 10040205 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;  element elasticBeamColumn 10040211 10040204 10040208 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;  element elasticBeamColumn 10040212 10040208 10040305 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;  element elasticBeamColumn 10040304 10040304 10040405 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;
-element elasticBeamColumn 10050104 10050104 10050205 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;  element elasticBeamColumn 10050211 10050204 10050208 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;  element elasticBeamColumn 10050212 10050208 10050305 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;  element elasticBeamColumn 10050304 10050304 10050405 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;
+element elasticBeamColumn 10020104 10020104 10020205 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;  element elasticBeamColumn 10020204 10020204 10020305 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;  element elasticBeamColumn 10020304 10020304 10020405 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;
+element elasticBeamColumn 10030104 10030104 10030205 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;  element elasticBeamColumn 10030204 10030204 10030305 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;  element elasticBeamColumn 10030304 10030304 10030405 14451.58 $E [expr ($n+1)/$n*874085993.76] 2;
+element elasticBeamColumn 10040104 10040104 10040205 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;  element elasticBeamColumn 10040204 10040204 10040305 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;  element elasticBeamColumn 10040304 10040304 10040405 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;
+element elasticBeamColumn 10050104 10050104 10050205 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;  element elasticBeamColumn 10050204 10050204 10050305 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;  element elasticBeamColumn 10050304 10050304 10050405 11354.82 $E [expr ($n+1)/$n*409571722.79] 2;
 
 # Panel zones
-# PanelNone Floor Axis X Y E mu fy A_stiff I_stiff d_col d_beam tp tf bf transfTag type_ position
-PanelZone 2 1 $Axis1 $Floor2 $E $mu $fy $A_Stiff $I_Stiff 622.30 607.06 20.32 24.89 228.60 2 1 "L";  PanelZone 2 2 $Axis2 $Floor2 $E $mu $fy $A_Stiff $I_Stiff 627.38 607.06 40.32 27.69 327.66 2 1 "I";  PanelZone 2 3 $Axis3 $Floor2 $E $mu $fy $A_Stiff $I_Stiff 627.38 607.06 40.32 27.69 327.66 2 1 "I";  PanelZone 2 4 $Axis4 $Floor2 $E $mu $fy $A_Stiff $I_Stiff 622.30 607.06 20.32 24.89 228.60 2 1 "R";
-PanelZone 3 1 $Axis1 $Floor3 $E $mu $fy $A_Stiff $I_Stiff 622.30 607.06 20.32 24.89 228.60 2 1 "L";  PanelZone 3 2 $Axis2 $Floor3 $E $mu $fy $A_Stiff $I_Stiff 627.38 607.06 40.32 27.69 327.66 2 1 "I";  PanelZone 3 3 $Axis3 $Floor3 $E $mu $fy $A_Stiff $I_Stiff 627.38 607.06 40.32 27.69 327.66 2 1 "I";  PanelZone 3 4 $Axis4 $Floor3 $E $mu $fy $A_Stiff $I_Stiff 622.30 607.06 20.32 24.89 228.60 2 1 "R";
-PanelZone 4 1 $Axis1 $Floor4 $E $mu $fy $A_Stiff $I_Stiff 607.06 462.28 17.53 17.27 228.35 2 1 "L";  PanelZone 4 2 $Axis2 $Floor4 $E $mu $fy $A_Stiff $I_Stiff 612.14 462.28 34.16 19.56 229.11 2 1 "I";  PanelZone 4 3 $Axis3 $Floor4 $E $mu $fy $A_Stiff $I_Stiff 612.14 462.28 34.16 19.56 229.11 2 1 "I";  PanelZone 4 4 $Axis4 $Floor4 $E $mu $fy $A_Stiff $I_Stiff 607.06 462.28 17.53 17.27 228.35 2 1 "R";
-PanelZone 5 1 $Axis1 $Floor5 $E $mu $fy $A_Stiff $I_Stiff 607.06 462.28 17.53 17.27 228.35 2 1 "LT";  PanelZone 5 2 $Axis2 $Floor5 $E $mu $fy $A_Stiff $I_Stiff 612.14 462.28 34.16 19.56 229.11 2 1 "T";  PanelZone 5 3 $Axis3 $Floor5 $E $mu $fy $A_Stiff $I_Stiff 612.14 462.28 34.16 19.56 229.11 2 1 "T";  PanelZone 5 4 $Axis4 $Floor5 $E $mu $fy $A_Stiff $I_Stiff 607.06 462.28 17.53 17.27 228.35 2 1 "RT";
+# PanelNone Floor Axis X Y E mu fy_column A_stiff I_stiff d_col d_beam tp tf bf transfTag type_ position check ""
+PanelZone 2 1 $Axis1 $Floor2 $E $mu $fy_column $A_Stiff $I_Stiff 622.30 607.06 20.32 24.89 228.60 2 1 "L";  PanelZone 2 2 $Axis2 $Floor2 $E $mu $fy_column $A_Stiff $I_Stiff 627.38 607.06 40.32 27.69 327.66 2 1 "I";  PanelZone 2 3 $Axis3 $Floor2 $E $mu $fy_column $A_Stiff $I_Stiff 627.38 607.06 40.32 27.69 327.66 2 1 "I";  PanelZone 2 4 $Axis4 $Floor2 $E $mu $fy_column $A_Stiff $I_Stiff 622.30 607.06 20.32 24.89 228.60 2 1 "R";
+PanelZone 3 1 $Axis1 $Floor3 $E $mu $fy_column $A_Stiff $I_Stiff 622.30 607.06 20.32 24.89 228.60 2 1 "L";  PanelZone 3 2 $Axis2 $Floor3 $E $mu $fy_column $A_Stiff $I_Stiff 627.38 607.06 40.32 27.69 327.66 2 1 "I";  PanelZone 3 3 $Axis3 $Floor3 $E $mu $fy_column $A_Stiff $I_Stiff 627.38 607.06 40.32 27.69 327.66 2 1 "I";  PanelZone 3 4 $Axis4 $Floor3 $E $mu $fy_column $A_Stiff $I_Stiff 622.30 607.06 20.32 24.89 228.60 2 1 "R";
+PanelZone 4 1 $Axis1 $Floor4 $E $mu $fy_column $A_Stiff $I_Stiff 607.06 462.28 17.53 17.27 228.35 2 1 "L";  PanelZone 4 2 $Axis2 $Floor4 $E $mu $fy_column $A_Stiff $I_Stiff 612.14 462.28 34.16 19.56 229.11 2 1 "I";  PanelZone 4 3 $Axis3 $Floor4 $E $mu $fy_column $A_Stiff $I_Stiff 612.14 462.28 34.16 19.56 229.11 2 1 "I";  PanelZone 4 4 $Axis4 $Floor4 $E $mu $fy_column $A_Stiff $I_Stiff 607.06 462.28 17.53 17.27 228.35 2 1 "R";
+PanelZone 5 1 $Axis1 $Floor5 $E $mu $fy_column $A_Stiff $I_Stiff 607.06 462.28 17.53 17.27 228.35 2 1 "LT";  PanelZone 5 2 $Axis2 $Floor5 $E $mu $fy_column $A_Stiff $I_Stiff 612.14 462.28 34.16 19.56 229.11 2 1 "T";  PanelZone 5 3 $Axis3 $Floor5 $E $mu $fy_column $A_Stiff $I_Stiff 612.14 462.28 34.16 19.56 229.11 2 1 "T";  PanelZone 5 4 $Axis4 $Floor5 $E $mu $fy_column $A_Stiff $I_Stiff 607.06 462.28 17.53 17.27 228.35 2 1 "RT";
 
-# RBS elements
+# RBS elements (If RBS length equal zero, RBS element will not be generated)
 
 
 
 
 
 # Beam hinges
-# BeamHinge SpringID NodeI NodeJ E fy Ix d htw bftf ry L Ls Lb My type_
-BeamHinge 10020109 11020104 10020104 $E $fy 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;  BeamHinge 10020210 10020205 11020202 $E $fy 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;  BeamHinge 10020209 11020204 10020204 $E $fy 874085993.76 607.06 48.95 6.61 48.75 5472.6 2736.3 2736.3 1130707416.00 2;  BeamHinge 10020310 10020305 11020302 $E $fy 874085993.76 607.06 48.95 6.61 48.75 5472.6 2736.3 2736.3 1130707416.00 2;  BeamHinge 10020309 11020304 10020304 $E $fy 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;  BeamHinge 10020410 10020405 11020402 $E $fy 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;
-BeamHinge 10030109 11030104 10030104 $E $fy 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;  BeamHinge 10030210 10030205 11030202 $E $fy 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;  BeamHinge 10030209 11030204 10030204 $E $fy 874085993.76 607.06 48.95 6.61 48.75 5472.6 2736.3 2736.3 1130707416.00 2;  BeamHinge 10030310 10030305 11030302 $E $fy 874085993.76 607.06 48.95 6.61 48.75 5472.6 2736.3 2736.3 1130707416.00 2;  BeamHinge 10030309 11030304 10030304 $E $fy 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;  BeamHinge 10030410 10030405 11030402 $E $fy 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;
-BeamHinge 10040109 11040104 10040104 $E $fy 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;  BeamHinge 10040210 10040205 11040202 $E $fy 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;  BeamHinge 10040209 11040204 10040204 $E $fy 409571722.79 462.28 38.55 5.44 42.85 5487.9 2743.9 2743.9 695385060.84 2;  BeamHinge 10040310 10040305 11040302 $E $fy 409571722.79 462.28 38.55 5.44 42.85 5487.9 2743.9 2743.9 695385060.84 2;  BeamHinge 10040309 11040304 10040304 $E $fy 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;  BeamHinge 10040410 10040405 11040402 $E $fy 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;
-BeamHinge 10050109 11050104 10050104 $E $fy 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;  BeamHinge 10050210 10050205 11050202 $E $fy 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;  BeamHinge 10050209 11050204 10050204 $E $fy 409571722.79 462.28 38.55 5.44 42.85 5487.9 2743.9 2743.9 695385060.84 2;  BeamHinge 10050310 10050305 11050302 $E $fy 409571722.79 462.28 38.55 5.44 42.85 5487.9 2743.9 2743.9 695385060.84 2;  BeamHinge 10050309 11050304 10050304 $E $fy 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;  BeamHinge 10050410 10050405 11050402 $E $fy 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;
+# BeamHinge SpringID NodeI NodeJ E fy_beam Ix d htw bftf ry L Ls Lb My type_ {check ""}
+BeamHinge 10020109 11020104 10020104 $E $fy_beam 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;  BeamHinge 10020210 10020205 11020202 $E $fy_beam 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;  BeamHinge 10020209 11020204 10020204 $E $fy_beam 874085993.76 607.06 48.95 6.61 48.75 5472.6 2736.3 2736.3 1130707416.00 2;  BeamHinge 10020310 10020305 11020302 $E $fy_beam 874085993.76 607.06 48.95 6.61 48.75 5472.6 2736.3 2736.3 1130707416.00 2;  BeamHinge 10020309 11020304 10020304 $E $fy_beam 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;  BeamHinge 10020410 10020405 11020402 $E $fy_beam 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;
+BeamHinge 10030109 11030104 10030104 $E $fy_beam 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;  BeamHinge 10030210 10030205 11030202 $E $fy_beam 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;  BeamHinge 10030209 11030204 10030204 $E $fy_beam 874085993.76 607.06 48.95 6.61 48.75 5472.6 2736.3 2736.3 1130707416.00 2;  BeamHinge 10030310 10030305 11030302 $E $fy_beam 874085993.76 607.06 48.95 6.61 48.75 5472.6 2736.3 2736.3 1130707416.00 2;  BeamHinge 10030309 11030304 10030304 $E $fy_beam 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;  BeamHinge 10030410 10030405 11030402 $E $fy_beam 874085993.76 607.06 48.95 6.61 48.75 5475.2 2737.6 2737.6 1130707416.00 2;
+BeamHinge 10040109 11040104 10040104 $E $fy_beam 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;  BeamHinge 10040210 10040205 11040202 $E $fy_beam 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;  BeamHinge 10040209 11040204 10040204 $E $fy_beam 409571722.79 462.28 38.55 5.44 42.85 5487.9 2743.9 2743.9 695385060.84 2;  BeamHinge 10040310 10040305 11040302 $E $fy_beam 409571722.79 462.28 38.55 5.44 42.85 5487.9 2743.9 2743.9 695385060.84 2;  BeamHinge 10040309 11040304 10040304 $E $fy_beam 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;  BeamHinge 10040410 10040405 11040402 $E $fy_beam 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;
+BeamHinge 10050109 11050104 10050104 $E $fy_beam 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;  BeamHinge 10050210 10050205 11050202 $E $fy_beam 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;  BeamHinge 10050209 11050204 10050204 $E $fy_beam 409571722.79 462.28 38.55 5.44 42.85 5487.9 2743.9 2743.9 695385060.84 2;  BeamHinge 10050310 10050305 11050302 $E $fy_beam 409571722.79 462.28 38.55 5.44 42.85 5487.9 2743.9 2743.9 695385060.84 2;  BeamHinge 10050309 11050304 10050304 $E $fy_beam 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;  BeamHinge 10050410 10050405 11050402 $E $fy_beam 409571722.79 462.28 38.55 5.44 42.85 5490.4 2745.2 2745.2 695385060.84 2;
 
 # Column hinges
-# Column SpringID NodeI NodeJ E Ix d htw ry L Lb My PPy SF_PPy pinned
+# Column SpringID NodeI NodeJ E Ix d htw ry L Lb My PPy SF_PPy pinned check ""
 ColumnHinge 10010107 10010100 10010101 $E 1248694276.80 622.30 39.16 50.34 3996.47 3996.47 1582990382.40 0.1062 1.25 1;  ColumnHinge 10010207 10010200 10010201 $E 1906339929.25 627.38 33.11 76.59 3996.47 3996.47 2363178499.44 0.0499 1.25 1;  ColumnHinge 10010307 10010300 10010301 $E 1906339929.25 627.38 33.11 76.59 3996.47 3996.47 2363178499.44 0.0499 1.25 1;  ColumnHinge 10010407 10010400 10010401 $E 1248694276.80 622.30 39.16 50.34 3996.47 3996.47 1582990382.40 0.1062 1.25 1;
 ColumnHinge 10020108 10020102 11020101 $E 1248694276.80 622.30 39.16 50.34 3996.47 3996.47 1582990382.40 0.1062 1.25 1;  ColumnHinge 10020208 10020202 11020201 $E 1906339929.25 627.38 33.11 76.59 3996.47 3996.47 2363178499.44 0.0499 1.25 1;  ColumnHinge 10020308 10020302 11020301 $E 1906339929.25 627.38 33.11 76.59 3996.47 3996.47 2363178499.44 0.0499 1.25 1;  ColumnHinge 10020408 10020402 11020401 $E 1248694276.80 622.30 39.16 50.34 3996.47 3996.47 1582990382.40 0.1062 1.25 1;
 ColumnHinge 10020107 11020103 10020101 $E 1248694276.80 622.30 39.16 50.34 3392.94 3392.94 1582990382.40 0.0783 1.25 1;  ColumnHinge 10020207 11020203 10020201 $E 1906339929.25 627.38 33.11 76.59 3392.94 3392.94 2363178499.44 0.0368 1.25 1;  ColumnHinge 10020307 11020303 10020301 $E 1906339929.25 627.38 33.11 76.59 3392.94 3392.94 2363178499.44 0.0368 1.25 1;  ColumnHinge 10020407 11020403 10020401 $E 1248694276.80 622.30 39.16 50.34 3392.94 3392.94 1582990382.40 0.0783 1.25 1;
@@ -211,6 +211,9 @@ fix 10010200 1 1 1;
 fix 10010300 1 1 1;
 fix 10010400 1 1 1;
 fix 10010500 1 1 0;
+
+# Soil constraint
+# (No soil constraint)
 
 # Rigid diaphragm
 equalDOF 11020204 11020104 1;  equalDOF 11020204 11020304 1;  equalDOF 11020204 11020404 1;
@@ -258,11 +261,11 @@ recorder Node -file $MainFolder/$SubFolder/RFV4_MF.out -node 11040204 -dof 1 vel
 recorder Node -file $MainFolder/$SubFolder/RFV5_MF.out -node 11050204 -dof 1 vel;
 
 # Floor displacement
-recorder Node -file $MainFolder/$SubFolder/RFV1_MF.out -node 10010100 -dof 1 disp;
-recorder Node -file $MainFolder/$SubFolder/RFV2_MF.out -node 11020204 -dof 1 disp;
-recorder Node -file $MainFolder/$SubFolder/RFV3_MF.out -node 11030204 -dof 1 disp;
-recorder Node -file $MainFolder/$SubFolder/RFV4_MF.out -node 11040204 -dof 1 disp;
-recorder Node -file $MainFolder/$SubFolder/RFV5_MF.out -node 11050204 -dof 1 disp;
+recorder Node -file $MainFolder/$SubFolder/Disp1_MF.out -node 10010100 -dof 1 disp;
+recorder Node -file $MainFolder/$SubFolder/Disp2_MF.out -node 11020204 -dof 1 disp;
+recorder Node -file $MainFolder/$SubFolder/Disp3_MF.out -node 11030204 -dof 1 disp;
+recorder Node -file $MainFolder/$SubFolder/Disp4_MF.out -node 11040204 -dof 1 disp;
+recorder Node -file $MainFolder/$SubFolder/Disp5_MF.out -node 11050204 -dof 1 disp;
 
 # Column forces
 recorder Element -file $MainFolder/$SubFolder/Column11.out -ele 10010101 force;  recorder Element -file $MainFolder/$SubFolder/Column12.out -ele 10010201 force;  recorder Element -file $MainFolder/$SubFolder/Column13.out -ele 10010301 force;  recorder Element -file $MainFolder/$SubFolder/Column14.out -ele 10010401 force;
@@ -388,7 +391,7 @@ analyze 10;
 loadConst -time 0.0;
 
 
-# --------------------------- Static gravity analysis ----------------------------
+# ---------------------------- Time history analysis -----------------------------
 
 if {$ShowAnimation == 1} {DisplayModel3D DeformedShape 5.00 100 100 1600 1000};
 
@@ -399,7 +402,7 @@ if {$EQ == 1} {
     set a0 [expr $zeta*2.0*$w1*$w3/($w1 + $w3)];
     set a1 [expr $zeta*2.0/($w1 + $w3)];
     set a1_mod [expr $a1*(1.0+$n)/$n];
-    set beam_Ids [list 10020104 10020211 10020212 10020304 10030104 10030211 10030212 10030304 10040104 10040211 10040212 10040304 10050104 10050211 10050212 10050304];
+    set beam_Ids [list 10020104 10020204 10020304 10030104 10030204 10030304 10040104 10040204 10040304 10050104 10050204 10050304];
     set column_Ids [list 10010101 10010201 10010301 10010401 10020101 10020201 10020301 10020401 10030102 10030103 10030202 10030203 10030302 10030303 10030402 10030403 10040101 10040201 10040301 10040401];
     set mass_Ids [list 11020104 11020204 11020304 11020404 11030104 11030204 11030304 11030404 11040104 11040204 11040304 11040404 11050104 11050204 11050304 11050404 10020500 10030500 10040500 10050500];
     # region 1 -ele {*}$beam_Ids -rayleigh 0.0 0.0 $a1_mod 0.0;
@@ -420,7 +423,7 @@ if {$EQ == 1} {
 }
 
 
-# --------------------------- Static gravity analysis ----------------------------
+# ------------------------------ Pushover analysis -------------------------------
 
 if {$PO == 1} {
 
@@ -455,12 +458,13 @@ if {$PO == 1} {
 
 }
 
+wipe all;
 
 # ----------------------------- Building information -----------------------------
 #
 # Moment resisting frame model information
 # Frame name: 4SMRF
-# Generation time: 2024-03-16 01:33:50.625000
+# Generation time: 2024-03-17 22:37:12.708346
 # All units are in [N, mm, t]
 # 
 # 
@@ -505,7 +509,8 @@ if {$PO == 1} {
 # 
 # Material properties:
 # 	Young's modulus [MPa]: 206000
-# 	Nominal yield strength [MPa]: 345
+# 	Nominal yield strength of beams [MPa]: 345
+# 	Nominal yield strength of columns [MPa]: 345
 # 	Possion ratio: 0.3
 # 
 # Load [MPa]:
@@ -541,5 +546,4 @@ if {$PO == 1} {
 # Beam-to-column connection: Fully constrained connection
 # Consider panel zone deformation: Yes (Parallelogram)
 # 
-
 

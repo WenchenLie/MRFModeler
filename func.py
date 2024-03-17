@@ -52,7 +52,7 @@ def check_string(value: str, options: list=None, isNone=False, name=''):
         return
     if not isinstance(value, str):
         raise ValueError(f'Variable{name_} should be of "str" type')
-    if value not in options:
+    if options and value not in options:
         raise ValueError(f'Variable{name_} should be within {options}')
 
 

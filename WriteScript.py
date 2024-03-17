@@ -6,15 +6,24 @@ from pathlib import Path
 from tkinter import messagebox
 import matplotlib.pyplot as plt
 from typing import Dict, Tuple, Union, Type
+import re
 
 
+"""
+Generate tcl script for time history and pushover analysis using OpenSees
+Writen by: Wenchen Lie
+2024-03-17
+"""
 
 class WriteScript:
     def __init__(self, frame: Frame) -> None:
         self.frame = frame
-        self.tcl_script = ''
+        self.tcl_script = []
         self.nodes_Id: Dict[int, Tuple[float, float]] = dict()  # {id: (x_coord, y_coord)}
         self.eles_Id: Dict[int, Tuple[int, int]] = dict()  # {id: (iNode, jNode)}
+        self.Nlines = 0  # number of lines
+        self.Nrecorder = 0  # number of recorders
+        self.line_frag = dict()
         self.fig, self.ax = plt.subplots()
         self.write_script()
         self.write_nodes()
@@ -22,6 +31,7 @@ class WriteScript:
         self.write_constraint()
         self.write_recorders()
         self.write_mass()
+        self.write_user_comments()
         self.write_eigen()
         self.write_gravity()
         self.write_dynamic_analysis()
@@ -36,7 +46,8 @@ class WriteScript:
         else:
             text = [str(i) for i in text]
             text = '  '.join(text)
-        self.tcl_script += text + '\n'
+        self.tcl_script.append(text)
+        self.Nlines += 1
 
     def write_script(self):
         frame = self.frame
@@ -63,6 +74,7 @@ class WriteScript:
         self.write()
         self.write('# Ground motion information')
         self.write('set MainFolder "H:/MRF_results/test/4SMRF";')
+        line1 = self.Nlines
         self.write('set GMname "th5";')
         self.write('set SubFolder "th5";')
         self.write('set GMdt 0.01;')
@@ -71,6 +83,8 @@ class WriteScript:
         self.write('set FVduration 30;')
         self.write('set EqSF 2.0;')
         self.write('set GMFile "GMs/$GMname.th";')
+        line2 = self.Nlines
+        self.line_frag['gminfo'] = (line1, line2)
         self.write()
         self.write('# Sourcing subroutines')
         self.write('source DisplayModel3D.tcl;')
@@ -95,10 +109,10 @@ class WriteScript:
         self.write(f'set NBay {frame.bays};')
         self.write(f'set E {frame.LoadAndMaterial.E:.2f};')
         self.write(f'set mu {frame.LoadAndMaterial.miu};')
-        self.write(f'set fy {frame.LoadAndMaterial.fy:.2f};')
+        self.write(f'set fy_beam {frame.LoadAndMaterial.fy_beam:.2f};')
+        self.write(f'set fy_column {frame.LoadAndMaterial.fy_column:.2f};')
         self.write('uniaxialMaterial Elastic 9 1.e-9;')
         self.write('uniaxialMaterial Elastic 99 1.e12;')
-        self.write('uniaxialMaterial Steel02 666 $fy $E 0.005 18.5 0.925 0.15;')
         self.write('geomTransf Linear 1;')
         self.write('geomTransf PDelta 2;')
         self.write('geomTransf Corotational 3;')
@@ -402,7 +416,7 @@ class WriteScript:
 
         # Panel zones
         self.write('# Panel zones')
-        self.write('# PanelNone Floor Axis X Y E mu fy A_stiff I_stiff d_col d_beam tp tf bf transfTag type_ position')
+        self.write('# PanelNone Floor Axis X Y E mu fy_column A_stiff I_stiff d_col d_beam tp tf bf transfTag type_ position check ""')
         for FF in range(2, frame.N + 2):
             write_temp = []
             for AA in range(1, frame.axis + 1):
@@ -431,7 +445,7 @@ class WriteScript:
                 if AA == 1:
                     d_beam = frame.StructuralComponents.beam_properties[FF][0][1]
                 elif AA == frame.axis:
-                    d_beam = frame.StructuralComponents.beam_properties[FF][0][1]
+                    d_beam = frame.StructuralComponents.beam_properties[FF][-1][1]
                 else:
                     d_beam_l = frame.StructuralComponents.beam_properties[FF][AA-2][1]
                     d_beam_r = frame.StructuralComponents.beam_properties[FF][AA-1][1]
@@ -439,12 +453,12 @@ class WriteScript:
                 tp = frame.StructuralComponents.pz_thickness[FF][AA-1]
                 type_ = 1 if frame.ConnectionAndBoundary.panel_zone_deformation else 2
                 self.add_panel_zone(FF, AA, X, Y, d_col, d_beam, type_, position)
-                write_temp.append(f'PanelZone {FF} {AA} $Axis{AA} $Floor{FF} $E $mu $fy $A_Stiff $I_Stiff {d_col:.2f} {d_beam:.2f} {tp:.2f} {tf_col:.2f} {bf_col:.2f} 2 {type_} "{position}";')
+                write_temp.append(f'PanelZone {FF} {AA} $Axis{AA} $Floor{FF} $E $mu $fy_column $A_Stiff $I_Stiff {d_col:.2f} {d_beam:.2f} {tp:.2f} {tf_col:.2f} {bf_col:.2f} 2 {type_} "{position}";')
             self.write(*write_temp)
         self.write()
 
         # RBS element
-        self.write('# RBS elements')
+        self.write('# RBS elements (If RBS length equal zero, RBS element will not be generated)')
         for FF in range(2, frame.N + 2):
             write_temp = []
             for BB in range(1, frame.bays + 1):
@@ -470,7 +484,7 @@ class WriteScript:
 
         # Beam hinge
         self.write('# Beam hinges')
-        self.write('# BeamHinge SpringID NodeI NodeJ E fy Ix d htw bftf ry L Ls Lb My type_')
+        self.write('# BeamHinge SpringID NodeI NodeJ E fy_beam Ix d htw bftf ry L Ls Lb My type_ {check ""}')
         for FF in range(2, frame.N + 2):
             write_temp = []
             for BB in range(1, frame.bays + 1):
@@ -511,7 +525,7 @@ class WriteScript:
                     # Other than RBS
                     inode = inode1
                 jnode = self.get_id(10, FF, AA_l, 4)
-                write_temp.append(f'BeamHinge {Id} {inode} {jnode} $E $fy {Ix:.2f} {d:.2f} {htw:.2f} {bftf:.2f} {ry:.2f} {L:.1f} {Ls:.1f} {Lb:.1f} {My:.2f} {type_};')
+                write_temp.append(f'BeamHinge {Id} {inode} {jnode} $E $fy_beam {Ix:.2f} {d:.2f} {htw:.2f} {bftf:.2f} {ry:.2f} {L:.1f} {Ls:.1f} {Lb:.1f} {My:.2f} {type_};')
                 self.zero_length(inode, jnode, Id=Id)
                 # right hinge
                 Id = self.get_id(10, FF, AA_r, 10)
@@ -524,14 +538,14 @@ class WriteScript:
                 else:
                     # Other than RBS
                     jnode = jnode2
-                write_temp.append(f'BeamHinge {Id} {inode} {jnode} $E $fy {Ix:.2f} {d:.2f} {htw:.2f} {bftf:.2f} {ry:.2f} {L:.1f} {Ls:.1f} {Lb:.1f} {My:.2f} {type_};')
+                write_temp.append(f'BeamHinge {Id} {inode} {jnode} $E $fy_beam {Ix:.2f} {d:.2f} {htw:.2f} {bftf:.2f} {ry:.2f} {L:.1f} {Ls:.1f} {Lb:.1f} {My:.2f} {type_};')
                 self.zero_length(inode, jnode, Id=Id)
             self.write(*write_temp)
         self.write()
 
         # column hinges
         self.write('# Column hinges')
-        self.write('# Column SpringID NodeI NodeJ E Ix d htw ry L Lb My PPy SF_PPy pinned')
+        self.write('# Column SpringID NodeI NodeJ E Ix d htw ry L Lb My PPy SF_PPy pinned check ""')
         for SS in range(1, frame.N + 1):
             write_temp_b = []
             write_temp_t = []
@@ -671,8 +685,28 @@ class WriteScript:
                 self.write(f'fix {Id} 1 1 0;')
         self.write()
 
+        # soil constraint
+        self.write('# Soil constraint')
+        if not frame.ConnectionAndBoundary.soil_constraint:
+            self.write('# (No soil constraint)')
+        for AA in range(1, frame.axis + 1):
+            if (AA != 1) and (AA != frame.axis):
+                continue
+            for FF in frame.ConnectionAndBoundary.soil_constraint:
+                if frame.ConnectionAndBoundary.panel_zone_deformation:
+                    if AA == 1:
+                        Id = self.get_id(11, FF, AA, 2)
+                    else:
+                        Id = self.get_id(11, FF, AA, 4)
+                else:
+                    Id = self.get_id(11, FF, AA, 0)
+                self.write(f'fix {Id} 1 0 0;')
+        self.write()
+
         # Rigig diaphragm
         self.write('# Rigid diaphragm')
+        if not frame.ConnectionAndBoundary.rigid_disphragm:
+            self.write('# (Rigid diaphragm was not considered)')
         AA_master = int((frame.axis + 1) / 2)
         AA_slave = []
         for AA in range(1, frame.axis + 1):
@@ -690,10 +724,10 @@ class WriteScript:
                     jnode = self.get_id(11, FF, AA, 0)
                 write_temp.append(f'equalDOF {inode} {jnode} 1;')
             self.control_nodes.append(inode)
-            self.write(*write_temp)
+            if frame.ConnectionAndBoundary.rigid_disphragm:
+                self.write(*write_temp)
         self.write()
         self.AA_master = AA_master  # control axes
-
 
     def write_recorders(self):
         frame = self.frame
@@ -704,6 +738,7 @@ class WriteScript:
         s = ' '.join([str(i) for i in self.control_nodes])
         for FF in range(2, frame.N + 2):
             self.write(f'recorder Node -file $MainFolder/EigenAnalysis/EigenVectorsMode{FF-1}.out -node {s} -dof 1 "eigen {FF-1}";')
+            self.add_recorder()
         self.write()
         self.write('# Time')
         self.write('recorder Node -file $MainFolder/$SubFolder/Time.out -time -node 10010100 -dof 1 disp;')
@@ -711,7 +746,9 @@ class WriteScript:
         self.write('# Support reactions')
         for AA in range(1, frame.axis + 2):
             Id = self.get_id(10, 1, AA, 0)
-            self.write(f'recorder Node -file $MainFolder/$SubFolder/Support{AA}.out -node {Id} -dof 1 2 3 reaction;')
+            if frame.recorders['Reactions']:
+                self.write(f'recorder Node -file $MainFolder/$SubFolder/Support{AA}.out -node {Id} -dof 1 2 3 reaction;')
+                self.add_recorder()
         self.write()
         self.write('# Story drift ratio')
         for SS in range(1, frame.N + 1):
@@ -720,8 +757,12 @@ class WriteScript:
             else:
                 inode = self.control_nodes[SS - 2]
             jnode = self.control_nodes[SS - 1]
-            self.write(f'recorder Drift -file $MainFolder/$SubFolder/SDR{SS}_MF.out -iNode {inode} -jNode {jnode} -dof 1 -perpDirn 2;')
-        self.write(f'recorder Drift -file $MainFolder/$SubFolder/SDRALL_MF.out -iNode 10010100 -jNode {jnode} -dof 1 -perpDirn 2;')
+            if frame.recorders['Drift']:
+                self.write(f'recorder Drift -file $MainFolder/$SubFolder/SDR{SS}_MF.out -iNode {inode} -jNode {jnode} -dof 1 -perpDirn 2;')
+                self.add_recorder()
+        if frame.recorders['Drift']:
+            self.write(f'recorder Drift -file $MainFolder/$SubFolder/SDRALL_MF.out -iNode 10010100 -jNode {jnode} -dof 1 -perpDirn 2;')
+            self.add_recorder()
         self.write()
         self.write('# Floor acceleration')
         for FF in range(1, frame.N + 2):
@@ -729,7 +770,9 @@ class WriteScript:
                 inode = 10010100
             else:
                 inode = self.control_nodes[FF - 2]
-            self.write(f'recorder Node -file $MainFolder/$SubFolder/RFA{FF}_MF.out -node {inode} -dof 1 accel;')
+            if frame.recorders['FloorAccel']:
+                self.write(f'recorder Node -file $MainFolder/$SubFolder/RFA{FF}_MF.out -node {inode} -dof 1 accel;')
+                self.add_recorder()
         self.write()
         self.write('# Floor velocity')
         for FF in range(1, frame.N + 2):
@@ -737,7 +780,9 @@ class WriteScript:
                 inode = 10010100
             else:
                 inode = self.control_nodes[FF - 2]
-            self.write(f'recorder Node -file $MainFolder/$SubFolder/RFV{FF}_MF.out -node {inode} -dof 1 vel;')
+            if frame.recorders['FloorVel']:
+                self.write(f'recorder Node -file $MainFolder/$SubFolder/RFV{FF}_MF.out -node {inode} -dof 1 vel;')
+                self.add_recorder()
         self.write()
         self.write('# Floor displacement')
         for FF in range(1, frame.N + 2):
@@ -745,7 +790,9 @@ class WriteScript:
                 inode = 10010100
             else:
                 inode = self.control_nodes[FF - 2]
-            self.write(f'recorder Node -file $MainFolder/$SubFolder/RFV{FF}_MF.out -node {inode} -dof 1 disp;')
+            if frame.recorders['FloorDisp']:
+                self.write(f'recorder Node -file $MainFolder/$SubFolder/Disp{FF}_MF.out -node {inode} -dof 1 disp;')
+                self.add_recorder()
         self.write()
         self.write('# Column forces')
         for SS in range(1, frame.N + 1):
@@ -754,7 +801,9 @@ class WriteScript:
                 Id = self.get_id(10, SS, AA, 1)
                 if not Id in self.eles_Id.keys():
                     Id = self.get_id(10, SS, AA, 2)
-                write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/Column{SS}{AA}.out -ele {Id} force;')
+                if frame.recorders['ColumnForce']:
+                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/Column{SS}{AA}.out -ele {Id} force;')
+                    self.add_recorder()
             self.write(*write_temp)
         self.write()
         self.write('# Column springs forces')
@@ -764,8 +813,11 @@ class WriteScript:
             for AA in range(1, frame.axis + 1):
                 Id_b = self.get_id(10, FF_b, AA, 7)
                 Id_t = self.get_id(10, FF_t, AA, 8)
-                write_temp_b.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_b}{AA}T_F.out -ele {Id_b} force;')
-                write_temp_t.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_t}{AA}B_F.out -ele {Id_t} force;')
+                if frame.recorders['ColumnHinge']:
+                    write_temp_b.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_b}{AA}T_F.out -ele {Id_b} force;')
+                    write_temp_t.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_t}{AA}B_F.out -ele {Id_t} force;')
+                    self.add_recorder()
+                    self.add_recorder()
             self.write(*write_temp_b)
             self.write(*write_temp_t)
         self.write()
@@ -776,8 +828,11 @@ class WriteScript:
             for AA in range(1, frame.axis + 1):
                 Id_b = self.get_id(10, FF_b, AA, 7)
                 Id_t = self.get_id(10, FF_t, AA, 8)
-                write_temp_b.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_b}{AA}T_D.out -ele {Id_b} deformation;')
-                write_temp_t.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_t}{AA}B_D.out -ele {Id_t} deformation;')
+                if frame.recorders['ColumnHinge']:
+                    write_temp_b.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_b}{AA}T_D.out -ele {Id_b} deformation;')
+                    write_temp_t.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_t}{AA}B_D.out -ele {Id_t} deformation;')
+                    self.add_recorder()
+                    self.add_recorder()
             self.write(*write_temp_b)
             self.write(*write_temp_t)
         self.write()
@@ -788,8 +843,11 @@ class WriteScript:
                 AA_l, AA_r = BB, BB + 1
                 Id_l = self.get_id(10, FF, AA_l, 9)
                 Id_r = self.get_id(10, FF, AA_r, 10)
-                write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}{AA_l}R_F.out -ele {Id_l} force;')
-                write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}{AA_r}L_F.out -ele {Id_r} force;')
+                if frame.recorders['BeamHinge']:
+                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}{AA_l}R_F.out -ele {Id_l} force;')
+                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}{AA_r}L_F.out -ele {Id_r} force;')
+                    self.add_recorder()
+                    self.add_recorder()
             self.write(*write_temp)
         self.write()
         self.write('# Beam springs rotations')
@@ -799,8 +857,11 @@ class WriteScript:
                 AA_l, AA_r = BB, BB + 1
                 Id_l = self.get_id(10, FF, AA_l, 9)
                 Id_r = self.get_id(10, FF, AA_r, 10)
-                write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}{AA_l}R_D.out -ele {Id_l} deformation;')
-                write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}{AA_r}L_D.out -ele {Id_r} deformation;')
+                if frame.recorders['BeamHinge']:
+                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}{AA_l}R_D.out -ele {Id_l} deformation;')
+                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}{AA_r}L_D.out -ele {Id_r} deformation;')
+                    self.add_recorder()
+                    self.add_recorder()
             self.write(*write_temp)
         self.write()
         self.write('# Panel zone spring forces (if any)')
@@ -810,7 +871,9 @@ class WriteScript:
             write_temp = []
             for AA in range(1, frame.axis + 1):
                 Id = self.get_id(11, FF, AA, 0)
-                write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/PZ{FF}{AA}_F.out -ele {Id} force;')
+                if frame.recorders['PanelZone']:
+                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/PZ{FF}{AA}_F.out -ele {Id} force;')
+                    self.add_recorder()
             self.write(*write_temp)
         self.write()
         self.write('# Panel zone spring deforamtions (if any)')
@@ -820,7 +883,9 @@ class WriteScript:
             write_temp = []
             for AA in range(1, frame.axis + 1):
                 Id = self.get_id(11, FF, AA, 0)
-                write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/PZ{FF}{AA}_D.out -ele {Id} deformation;')
+                if frame.recorders['PanelZone']:
+                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/PZ{FF}{AA}_D.out -ele {Id} deformation;')
+                    self.add_recorder()
             self.write(*write_temp)
         self.write()
 
@@ -834,7 +899,7 @@ class WriteScript:
         self.write('set g 9810.0;')
         for FF in range(2, frame.N + 2):
             write_temp = []
-            for AA in range(1, frame.N + 1):
+            for AA in range(1, frame.axis + 1):
                 if frame.ConnectionAndBoundary.panel_zone_deformation == True:
                     Id = self.get_id(11, FF, AA, 4)
                 else:
@@ -848,8 +913,38 @@ class WriteScript:
             AA = frame.axis + 1
             Id = self.get_id(10, FF, AA, 0)
             mass = frame.LoadAndMaterial.mass_grav[FF]
-            self.write(f'mass {Id} {mass:.3f} 1.e-9 1.e-9;')        
+            self.write(f'mass {Id} {mass:.3f} 1.e-9 1.e-9;')
         self.write()
+        self.write()
+
+
+    def write_user_comments(self):
+        uesr_commands = self.frame.UserComment.additional_commands
+        if not uesr_commands:
+            return
+        s = f' User comments '.center(80, '-')
+        self.write('# ' + s)
+        self.write()
+        for command in uesr_commands:
+            type_ = list(command.keys())[0]
+            if type_ == 'node':
+                paras = command['node'].strip(';').split(' ')
+                Id, x, y = int(paras[1]), float(paras[2]), float(paras[3])
+                if Id in self.nodes_Id.keys():
+                    print(f'User command warning: node {Id} was already existed')
+                self.node(x, y, Id=Id, c='orange')
+                self.write(command['node'])
+            elif type_ == 'mat':
+                self.write(command['mat'])
+            elif type_ == 'ele':
+                paras = command['ele'].strip(';').split(' ')
+                Id, inode, jnode = int(paras[2]), int(paras[3]), int(paras[4])
+                if Id in self.eles_Id.keys():
+                    print(f'User command warning: element {Id} was already existed')
+                self.ele(inode, jnode, Id=Id, c='orange')
+                self.write(command['ele'])
+            elif type_ == 'any':
+                self.write(command['any'])
         self.write()
 
 
@@ -919,7 +1014,7 @@ class WriteScript:
 
     def write_dynamic_analysis(self):
         frame = self.frame
-        s = f' Static gravity analysis '.center(80, '-')
+        s = f' Time history analysis '.center(80, '-')
         self.write('# ' + s)
         self.write()
         self.write('if {$ShowAnimation == 1} {DisplayModel3D DeformedShape 5.00 100 100 1600 1000};')
@@ -970,10 +1065,10 @@ class WriteScript:
             mass_Ids.append(str(Id))
         mass_Ids = ' '.join(mass_Ids)
         self.write(f'    set mass_Ids [list {mass_Ids}];')
-        self.write('    region 1 -ele {*}$beam_Ids -rayleigh 0.0 0.0 $a1_mod 0.0;')
-        self.write('    region 2 -ele {*}$column_Ids -rayleigh 0.0 0.0 $a1_mod 0.0;')
-        self.write('    region 3 -ele {*}$mass_Ids -rayleigh $a0 0.0 0.0 0.0;')
-        self.write('    # rayleigh $a0 0.0 $a1 0.0;')
+        self.write('    # region 1 -ele {*}$beam_Ids -rayleigh 0.0 0.0 $a1_mod 0.0;')
+        self.write('    # region 2 -ele {*}$column_Ids -rayleigh 0.0 0.0 $a1_mod 0.0;')
+        self.write('    # region 3 -ele {*}$mass_Ids -rayleigh $a0 0.0 0.0 0.0;')
+        self.write('    rayleigh $a0 0.0 $a1 0.0;')
         self.write('')
         self.write('    # Ground motion acceleration file input')
         self.write('    set AccelSeries "Series -dt $GMdt -filePath $GMFile -factor [expr $EqSF * $g]";')
@@ -994,7 +1089,7 @@ class WriteScript:
 
     def write_pushover_analysis(self):
         frame = self.frame
-        s = f' Static gravity analysis '.center(80, '-')
+        s = f' Pushover analysis '.center(80, '-')
         self.write('# ' + s)
         self.write()
         self.write('if {$PO == 1} {')
@@ -1132,7 +1227,7 @@ class WriteScript:
             res += a
         return int(res)
 
-    def node(self, x: float | int, y: float | int, c: str='black', Id: int=None, size=5):
+    def node(self, x: float | int, y: float | int, c: str='black', Id: int=None, size=2):
         self.ax.plot(x, y, 'o', color=c, markersize=size)
         if Id:
             if Id in self.nodes_Id.keys():
@@ -1144,7 +1239,7 @@ class WriteScript:
     def ele(self, iNode: int, jNode: int, c: str='blue', Id: int=None):
         xi, yi = self.get_coord(iNode)
         xj, yj = self.get_coord(jNode)
-        self.ax.plot([xi, xj], [yi, yj], color=c)
+        self.ax.plot([xi, xj], [yi, yj], color=c, lw=1)
         if Id:
             if Id in self.eles_Id.keys():
                 print('----- Waring -----')
@@ -1156,7 +1251,7 @@ class WriteScript:
         xi, yi = self.get_coord(iNode)
         xj, yj = self.get_coord(jNode)
         if (xi != xj) or (yi != yj):
-            raise ValueError('[Error 2] Coordinates of zero length element node are different')
+            raise ValueError(f'[Error 2] Coordinates of zero length element node are different\n{iNode}: ({xi}, {yi})\n{jNode}: ({xj}, {yj})')
         self.ax.plot(xi, yi, color=c, markersize=size, zorder=99999)
         self.ax.plot(xj, yj, color=c, markersize=size, zorder=99999)
         if Id:
@@ -1176,8 +1271,12 @@ class WriteScript:
             raise ValueError(f'Node id {Id} not exists')
         return self.nodes_Id[int(Id)]
 
+    def add_recorder(self):
+        self.Nrecorder += 1
+
     def save(self):
         model_name = self.frame.frame_name
+        plt.savefig(f'{model_name}.png', dpi=1200)
         plt.show()
         # TODO
         # if Path(f'{model_name}.tcl').exists:
@@ -1187,9 +1286,28 @@ class WriteScript:
         #     else:
         #         print('The tcl script was not generated!')
         #         return
+        text_to_write = '\n'.join(self.tcl_script)
         with open(f'{model_name}.tcl', 'w') as f:
-            f.write(self.tcl_script)
-        print('The tcl script was already generated!')
+            f.write(text_to_write)
+        if self.Nrecorder < 512:
+            print('\n----------------- Success -----------------------')
+        else:
+            print('\n----------------- Warning -----------------------')
+        print('The tcl script was generated successfully')
+        if self.Nrecorder >= 512:
+            print(f'----- However, the number of recorders ({self.Nrecorder}) exceed the limit of operating system,')
+            print('      which may result in the inability to read ground motion files.')
+            print('      It suggested to cancel the defination of some unimportant recorders.')
+        line1 = self.line_frag['gminfo'][0]
+        line2 = self.line_frag['gminfo'][1]
+        print(f'The user still need to modify lines {line1} - {line2} to difine the ground motion information')
+        print('The generated files as follow:')
         path_ = Path(f'{model_name}.tcl').absolute()
-        print(f'({path_})')
+        print(f'{path_}')
+        path_ = Path(f'{model_name}.png').absolute()
+        print(f'{path_}')
+        path_ = path_.parent / 'Model Information.txt'
+        print(f'{path_}')
+        print('-------------------------------------------------\n')
+
 

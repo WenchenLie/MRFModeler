@@ -13,14 +13,19 @@ class LoadAndMaterial:
         self.N = frame.N
         self.bays = frame.bays
         self.axis = frame.axis
-        self.dead_load = dict()  # Necessary
-        self.live_load = dict()  # Necessary
-        self.cladding_load = dict()  # Unnecessary
-        self.E = None  # Necessary
-        self.fy = None  # Necessary
+        self.dead_load = dict()
+        self.live_load = dict()
+        self.cladding_load = dict()
+        self.E = 206000  # Necessary
+        self.fy_beam = None  # Necessary
+        self.fy_column = None  # Necessary
         self.miu = 0.3  # Unnecessary
-        self.cc_weight = dict()  # Combination coefficients of seismic weight, necessary
-        self.cc_mass = dict()  # Combination coefficients of seismic mass, necessary
+        self.cc_weight = {'Dead': 1.05, 'Live': 0.25, 'Cladding': 1.05}  # Combination coefficients of seismic weight, necessary
+        self.cc_mass = {'Dead': 1, 'Live': 0, 'Cladding': 1}  # Combination coefficients of seismic mass, necessary
+        for floor in range(2, frame.N + 2):
+            self.dead_load[floor] = 1e-9
+            self.live_load[floor] = 1e-9
+            self.cladding_load[floor - 1] = 1e-9
 
 
     def set_dead_load(self, floor: list[int], load_per_area: list[int | float]):
@@ -69,19 +74,22 @@ class LoadAndMaterial:
             self.cladding_load[a] = b
 
 
-    def set_material(self, youngs_modulus: int | float, nominal_strength: int | float, miu: float=0.3):
+    def set_material(self, E: int | float, fy_beam: int | float, fy_column: int | float, miu: float=0.3):
         """Set material properties for all steel components
 
         Args:
-            youngs_modulus (int | float): Youngs modulus
-            nominal_strength (int | float): Nominal yield strength
+            E (int | float): Youngs modulus
+            fy_beam (int | float): Nominal yield strength of beams
+            fy_column (int | float): Nominal yield strength of column
             miu (float, optional): possion ratio
         """
-        func.check_int_float(youngs_modulus, name='youngs_modulus')
-        func.check_int_float(nominal_strength, name='nominal_strength')
+        func.check_int_float(E, name='E')
+        func.check_int_float(fy_beam, name='fy_beam')
+        func.check_int_float(fy_column, name='fy_column')
         func.check_int_float(miu, [0, 0.5], name='miu')
-        self.E = youngs_modulus
-        self.fy = nominal_strength
+        self.E = E
+        self.fy_beam = fy_beam
+        self.fy_column = fy_column
         self.miu = miu
 
 
@@ -118,8 +126,10 @@ class LoadAndMaterial:
     def _finished(self):
         if self.E is None:
             raise ValueError("Young's modulus has not been difined")
-        if self.fy is None:
-            raise ValueError("Nominal yield strength has not been difined")
+        if self.fy_beam is None:
+            raise ValueError("Nominal yield strength of beams has not been difined")
+        if self.fy_column is None:
+            raise ValueError("Nominal yield strength of columns has not been difined")
         if not self.cc_weight:
             raise ValueError("Combination coefficients of seismic weight have not been difined")
         if not self.cc_mass:
@@ -258,12 +268,12 @@ class LoadAndMaterial:
                 id_axis = axis - 1
                 A = prop_floor[id_axis][5]  # Cross section aera of column
                 P = P_col[story][id_axis]  # Axial force of column
-                PPy_story_b.append(P / (A * self.fy))  # Axial compression ratio of columns on the story
+                PPy_story_b.append(P / (A * self.fy_column))  # Axial compression ratio of columns on the story
                 if story not in frame.StructuralComponents.column_splice:
-                    PPy_story_t.append(P / (A * self.fy))  # Axial compression ratio of columns on the story
+                    PPy_story_t.append(P / (A * self.fy_column))  # Axial compression ratio of columns on the story
                 else:
                     A_t = props_col[story+1][id_axis][5]  # Cross section aera of column
-                    PPy_story_t.append(P / (A_t * self.fy))  # Axial compression ratio of columns on the story
+                    PPy_story_t.append(P / (A_t * self.fy_column))  # Axial compression ratio of columns on the story
             PPy[f'{story}b'] = PPy_story_b
             PPy[f'{story}t'] = PPy_story_t
         self.PPy, self.PPy_scale = PPy, PPy_scale

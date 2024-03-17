@@ -44,7 +44,7 @@
 ########################################################################################################
 
 
-proc Spring_PZ {P_Elm NodeI NodeJ E mu fy  tw_Col tdp d_Col d_Beam tf_Col bf_Col Ix_Col trib ts Response_ID transfTag} {
+proc Spring_PZ {P_Elm NodeI NodeJ E mu fy  tw_Col tdp d_Col d_Beam tf_Col bf_Col Ix_Col trib ts Response_ID transfTag {note ""}} {
  
  set tpz [expr $tw_Col + $tdp]; # total PZ thickness
  
@@ -142,6 +142,11 @@ set SigmaX [lindex $Sigma_PZ 3]; Generate_lognrmrand $Vp_6gamma $SigmaX; 	set Vp
  if { $Response_ID == 2.0 } {
 	 uniaxialMaterial Hysteretic $Dummy_ID  $M1_N $gamma1  $M2_N $gamma2 $M3_N $gamma3 [expr -$M1_N] [expr -$gamma1] [expr -$M2_N] [expr -$gamma2] [expr -$M3_N] [expr -$gamma3] 0.25 0.75 0. 0. 0.;
 	 uniaxialMaterial MinMax 	 $P_Elm $Dummy_ID -min $gammaU_N -max $gammaU_P;
+	 if {$note ne ""} {
+		puts $note
+        puts "M1: $M1_N, M2: $M2_N, M3: $M3_N"
+        puts "gamma1: $gamma1, gamma2: $gamma2, gamma3: $gamma3"
+	 }
  } 
  
 #  element zeroLength $P_Elm $NodeI $NodeJ -mat $P_Elm -dir 6;

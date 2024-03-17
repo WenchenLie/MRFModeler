@@ -108,20 +108,17 @@ class StructuralComponents:
 
     def _finish(self):
         floor_set = set([2 + i for i in range(self.N)])
-        axis_set = set([1 + i for i in range(self.bays + 1)])
         floor_defined_beam = set(self.beams.keys())
-        axis_defined_columns = set(self.columns.keys())
-        if floor_set == floor_defined_beam and axis_set == axis_defined_columns:
+        if floor_set == floor_defined_beam:
             pass
         else:
             if floor_set - floor_defined_beam:
                 raise ValueError(f'Beams on the floor {floor_set - floor_defined_beam} have not been defined')
             if floor_defined_beam - floor_set:
                 raise ValueError(f'Beams on the floor {floor_defined_beam - floor_set} are not existed')
-            if axis_set - axis_defined_columns:
-                raise ValueError(f'Columns on the axis {axis_set - axis_defined_columns} have not been defined')
-            if axis_defined_columns - axis_set:
-                raise ValueError(f'Columns on the axis {axis_defined_columns - axis_set} are not existed')
+        for key, val in self.columns.items():
+            if len(val) != self.axis:
+                raise ValueError(f'Number of defined column of stort {key} is less than the axis number ({self.axis})')
 
 
     def _get_section_properties(self, frame: Frame):
@@ -130,14 +127,15 @@ class StructuralComponents:
         * column_properties (dict): {story, [[bf, h, ...], [bf, h, ...], ...(x N)]}
         * RBS_length (dict): {floor: [l1, l2, ...(x 2*bays)]}
         """
-        fy = frame.LoadAndMaterial.fy
+        fy_beam = frame.LoadAndMaterial.fy_beam
+        fy_column = frame.LoadAndMaterial.fy_column
         BC_connection = frame.ConnectionAndBoundary.beam_column_connection
         RBS_paras = frame.ConnectionAndBoundary.RBS_paras
         self.beam_properties = dict()
         for floor, sections in self.beams.items():
             props = []
             for section in sections:
-                prop = WSection(section, fy)
+                prop = WSection(section, fy_beam)
                 #                  0        1       2        3        4        5       6        7       8
                 props.append([prop.bf, prop.d, prop.tw, prop.tf, prop.ry, prop.A, prop.Ix, prop.My, prop.h])
             self.beam_properties[floor] = props
@@ -147,7 +145,7 @@ class StructuralComponents:
         for story, sections in self.columns.items():
             props = []
             for section in sections:
-                prop = WSection(section, fy)
+                prop = WSection(section, fy_column)
                 #                  0        1       2        3        4        5       6        7       8
                 props.append([prop.bf, prop.d, prop.tw, prop.tf, prop.ry, prop.A, prop.Ix, prop.My, prop.h])
             self.column_properties[story] = props

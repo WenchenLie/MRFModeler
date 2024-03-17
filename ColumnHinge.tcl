@@ -16,6 +16,7 @@
 # PPy            Axial load ratio due to gravity
 # SF_PPy         Scale factor of axial load ratio (due to overturning effect)
 # pinned         Column base pinned connection (1: fixed, 2: pinned)
+# check          Print IMK model parameters
 # 
 # ---------------
 # Reference:
@@ -26,7 +27,7 @@
 # --------------------------------------------------------------------------------
 
 
-proc ColumnHinge {SpringID NodeI NodeJ E Ix d htw ry L Lb My PPy SF_PPy pinned} {
+proc ColumnHinge {SpringID NodeI NodeJ E Ix d htw ry L Lb My PPy SF_PPy pinned {check ""}} {
 
     set n 10.0;
     set c1 1.0;
@@ -57,9 +58,9 @@ proc ColumnHinge {SpringID NodeI NodeJ E Ix d htw ry L Lb My PPy SF_PPy pinned} 
     if {$McMy < 1.0} {set McMy 1.0}
     if {$McMy > 1.3} {set McMy 1.3}
 
-    set theta_y [expr $My/(6 * $E * $Ix / $L)];
-    set theta_p [expr $theta_p - ($McMy-1.0)*$My/(6 * $E * $Ix / $L)];
-    set theta_pc [expr $theta_pc + $theta_y + ($McMy-1.0)*$My/(6 * $E * $Ix / $L)];
+    # set theta_y [expr $My/(6 * $E * $Ix / $L)];
+    # set theta_p [expr $theta_p - ($McMy-1.0)*$My/(6 * $E * $Ix / $L)];
+    # set theta_pc [expr $theta_pc + $theta_y + ($McMy-1.0)*$My/(6 * $E * $Ix / $L)];
 
     set theta_u 0.15;
     set D 1.0;
@@ -71,6 +72,9 @@ proc ColumnHinge {SpringID NodeI NodeJ E Ix d htw ry L Lb My PPy SF_PPy pinned} 
         element zeroLength $SpringID $NodeI $NodeJ -mat 99 99 $SpringID -dir 1 2 6;
     } elseif {$pinned == 2} {
         element zeroLength $SpringID $NodeI $NodeJ -mat 99 99 9 -dir 1 2 6;
+    }
+    if {$check ne ""} {
+        puts "$check:\nKs: $K, My: $My, theta_p: $theta_p, theta_pc: $theta_pc, Res: $Res"
     }
 }
 

@@ -1,59 +1,84 @@
 Moment resisting frame model information
-Frame name: 4SMRF
-Generation time: 2024-03-16 01:33:50.625000
+Frame name: 9S_Benchmark
+Generation time: 2024-03-17 23:36:14.085378
 All units are in [N, mm, t]
 
 
 --------------- 1. Building Geometry ---------------
 
-Building height: 16300
-Number of story: 4
-Number of bays: 3
-Plane dimensions [mm]: 42700 x 30500
-Number of moment frames: 2
-External column tributary area [mm]: 9150 x 3050
-Internal column tributary area [mm]: 6100 x 3050
+Building height: 40820
+Number of story: 10
+Number of bays: 5
+Plane dimensions [mm]: 45750 x 45750
+Number of moment frames: 6
+External column tributary area [mm]: 4575.0 x 4575.0
+Internal column tributary area [mm]: 9150 x 4575.0
 
 
 --------------- 2. Structural Components ---------------
 
 Beam sections:
- Floor  Bay-1  Bay-2  Bay-3
-     2 W24x76 W24x76 W24x76
-     3 W24x76 W24x76 W24x76
-     4 W18x60 W18x60 W18x60
-     5 W18x60 W18x60 W18x60
+ Floor   Bay-1   Bay-2   Bay-3   Bay-4   Bay-5
+     2 W36x160 W36x160 W36x160 W36x160 W36x160
+     3 W36x160 W36x160 W36x160 W36x160 W36x160
+     4 W36x160 W36x160 W36x160 W36x160 W36x160
+     5 W36x135 W36x135 W36x135 W36x135 W36x135
+     6 W36x135 W36x135 W36x135 W36x135 W36x135
+     7 W36x135 W36x135 W36x135 W36x135 W36x135
+     8 W36x135 W36x135 W36x135 W36x135 W36x135
+     9  W30x99  W30x99  W30x99  W30x99  W30x99
+    10  W27x84  W27x84  W27x84  W27x84  W27x84
+    11  W24x68  W24x68  W24x68  W24x68  W24x68
 
 Column sections:
- Story  Axis-1  Axis-2  Axis-3  Axis-4
-     1 W24x103 W24x146 W24x146 W24x103
-     2 W24x103 W24x146 W24x146 W24x103
-     3 W24x103 W24x146 W24x146 W24x103
-     4  W24x76  W24x84  W24x84  W24x76
+ Story  Axis-1  Axis-2  Axis-3  Axis-4  Axis-5  Axis-6
+     1 W14x500 W14x500 W14x500 W14x500 W14x500 W14x500
+     2 W14x500 W14x500 W14x500 W14x500 W14x500 W14x500
+     3 W14x455 W14x455 W14x455 W14x455 W14x455 W14x455
+     4 W14x455 W14x455 W14x455 W14x455 W14x455 W14x455
+     5 W14x370 W14x370 W14x370 W14x370 W14x370 W14x370
+     6 W14x370 W14x370 W14x370 W14x370 W14x370 W14x370
+     7 W14x283 W14x283 W14x283 W14x283 W14x283 W14x283
+     8 W14x283 W14x283 W14x283 W14x283 W14x283 W14x283
+     9 W14x257 W14x257 W14x257 W14x257 W14x257 W14x257
+    10 W14x257 W14x257 W14x257 W14x257 W14x257 W14x257
 
-Stories with column splices: 3
+Stories with column splices: 3, 5, 7, 9
 
 Doubler plate thickness [mm]:
- Floor  Axis-1  Axis-2  Axis-3  Axis-4
-     2    6.35 23.8125 23.8125    6.35
-     3    6.35 23.8125 23.8125    6.35
-     4    6.35 22.2250 22.2250    6.35
-     5    6.35 22.2250 22.2250    6.35
+ Floor  Axis-1  Axis-2  Axis-3  Axis-4  Axis-5  Axis-6
+     2       0       0       0       0       0       0
+     3       0       0       0       0       0       0
+     4       0       0       0       0       0       0
+     5       0       0       0       0       0       0
+     6       0       0       0       0       0       0
+     7       0       0       0       0       0       0
+     8       0       0       0       0       0       0
+     9       0       0       0       0       0       0
+    10       0       0       0       0       0       0
+    11       0       0       0       0       0       0
 
 
 --------------- 3. Load and Material ---------------
 
 Material properties:
 	Young's modulus [MPa]: 206000
-	Nominal yield strength [MPa]: 345
+	Nominal yield strength of beams [MPa]: 248
+	Nominal yield strength of columns [MPa]: 345
 	Possion ratio: 0.3
 
 Load [MPa]:
-Story/Floor   Dead    Live  Cladding
-        1/2 0.0043 0.00240    0.0012
-        2/3 0.0043 0.00240    0.0012
-        3/4 0.0043 0.00240    0.0012
-        4/5 0.0043 0.00096    0.0012
+Story/Floor         Dead         Live     Cladding
+        1/2 1.000000e-09 1.000000e-09 1.000000e-09
+        2/3 1.000000e-09 1.000000e-09 1.000000e-09
+        3/4 1.000000e-09 1.000000e-09 1.000000e-09
+        4/5 1.000000e-09 1.000000e-09 1.000000e-09
+        5/6 1.000000e-09 1.000000e-09 1.000000e-09
+        6/7 1.000000e-09 1.000000e-09 1.000000e-09
+        7/8 1.000000e-09 1.000000e-09 1.000000e-09
+        8/9 1.000000e-09 1.000000e-09 1.000000e-09
+       9/10 1.000000e-09 1.000000e-09 1.000000e-09
+      10/11 1.000000e-09 1.000000e-09 1.000000e-09
 
 Load and mass combination coefficients:
         Dead  Live  Cladding
@@ -61,22 +86,34 @@ Weight  1.05  0.25      1.05
 Mass    1.00  0.00      1.00
 
 Axial compressive ratio of columns:
-Story   Axis-1   Axis-2   Axis-3   Axis-4
-   1b 0.106212 0.049895 0.049895 0.106212
-   1t 0.106212 0.049895 0.049895 0.106212
-   2b 0.078289 0.036778 0.036778 0.078289
-   2t 0.078289 0.036778 0.036778 0.078289
-   3b 0.050611 0.023775 0.023775 0.050611
-   3t 0.068460 0.041390 0.041390 0.068460
-   4b 0.031020 0.018755 0.018755 0.031020
-   4t 0.031020 0.018755 0.018755 0.031020
+Story       Axis-1       Axis-2       Axis-3       Axis-4       Axis-5       Axis-6
+   1b 3.346803e-07 3.484489e-07 3.484489e-07 3.484489e-07 3.484489e-07 3.346803e-07
+   1t 3.346803e-07 3.484489e-07 3.484489e-07 3.484489e-07 3.484489e-07 3.346803e-07
+   2b 3.011185e-07 3.134165e-07 3.134165e-07 3.134165e-07 3.134165e-07 3.011185e-07
+   2t 3.011185e-07 3.134165e-07 3.134165e-07 3.134165e-07 3.134165e-07 3.011185e-07
+   3b 2.934899e-07 3.053440e-07 3.053440e-07 3.053440e-07 3.053440e-07 2.934899e-07
+   3t 2.934899e-07 3.053440e-07 3.053440e-07 3.053440e-07 3.053440e-07 2.934899e-07
+   4b 2.567657e-07 2.671000e-07 2.671000e-07 2.671000e-07 2.671000e-07 2.567657e-07
+   4t 2.567657e-07 2.671000e-07 2.671000e-07 2.671000e-07 2.671000e-07 2.567657e-07
+   5b 2.705097e-07 2.813461e-07 2.813461e-07 2.813461e-07 2.813461e-07 2.705097e-07
+   5t 2.705097e-07 2.813461e-07 2.813461e-07 2.813461e-07 2.813461e-07 2.705097e-07
+   6b 2.253626e-07 2.343306e-07 2.343306e-07 2.343306e-07 2.343306e-07 2.253626e-07
+   6t 2.253626e-07 2.343306e-07 2.343306e-07 2.343306e-07 2.343306e-07 2.253626e-07
+   7b 2.358160e-07 2.451062e-07 2.451062e-07 2.451062e-07 2.451062e-07 2.358160e-07
+   7t 2.358160e-07 2.451062e-07 2.451062e-07 2.451062e-07 2.451062e-07 2.358160e-07
+   8b 1.767399e-07 1.835854e-07 1.835854e-07 1.835854e-07 1.835854e-07 1.767399e-07
+   8t 1.767399e-07 1.835854e-07 1.835854e-07 1.835854e-07 1.835854e-07 1.767399e-07
+   9b 1.296480e-07 1.344970e-07 1.344970e-07 1.344970e-07 1.344970e-07 1.296480e-07
+   9t 1.296480e-07 1.344970e-07 1.344970e-07 1.344970e-07 1.344970e-07 1.296480e-07
+  10b 6.455484e-08 6.671019e-08 6.671019e-08 6.671019e-08 6.671019e-08 6.455484e-08
+  10t 6.455484e-08 6.671019e-08 6.671019e-08 6.671019e-08 6.671019e-08 6.455484e-08
 
-Seiemic weight of considered 2D frame: 14367.82 kN
-Seiemic mass of considered 2D frame: 1269.71 t
+Seiemic weight of considered 2D frame: 59856.00 kN
+Seiemic mass of considered 2D frame: 5985.60 t
 
 
 --------------- 4. Connection and Boundary Condition ---------------
 
-Base support: Fixed
+Base support: Pinned
 Beam-to-column connection: Fully constrained connection
 Consider panel zone deformation: Yes (Parallelogram)

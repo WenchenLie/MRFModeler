@@ -24,6 +24,7 @@
 #                   T: top
 #                   LT: Left top
 #                   RT: Right top
+# check          Print Hysteretic model parameters
 # 
 # ---------------
 # Written by: Wenchen Lie, Guangzhou University, China
@@ -31,7 +32,7 @@
 # --------------------------------------------------------------------------------
 
 
-proc PanelZone {Floor Axis X Y E mu fy A_stiff I_stiff d_col d_beam tp tf bf transfTag type_ position} {
+proc PanelZone {Floor Axis X Y E mu fy A_stiff I_stiff d_col d_beam tp tf bf transfTag type_ position {check ""}} {
 
     # node ID
     set node_C [expr 11000000 + $Floor*10000 + $Axis*100];  # 11FFAA01
@@ -145,7 +146,12 @@ proc PanelZone {Floor Axis X Y E mu fy A_stiff I_stiff d_col d_beam tp tf bf tra
         uniaxialMaterial Hysteretic [expr $spring_id+1]  $M1 $gamma1 $M2 $gamma2 $M3 $gamma3 [expr -$M1] [expr -$gamma1] [expr -$M2] [expr -$gamma2] [expr -$M3] [expr -$gamma3] 0.25 0.75 0. 0. 0.;
         uniaxialMaterial MinMax $spring_id [expr $spring_id+1] -min [expr -$gammaU] -max $gammaU;
         element zeroLength $spring_id $node_TR $node_RT -mat $spring_id -dir 6;
-        # element zeroLength $spring_id $node_TR $node_RT -mat 99 -dir 6;  # TODO
+    }
+
+    if {$check ne ""} {
+        puts $check
+        puts "M1: $M1, M2: $M2, M3: $M3"
+        puts "gamma1: $gamma1, gamma2: $gamma2, gamma3: $gamma3"
     }
 }
 

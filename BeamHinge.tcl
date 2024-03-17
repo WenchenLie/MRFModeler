@@ -1,6 +1,6 @@
 # -------------------------- Construct beam hinge model --------------------------
 #
-# Args (16):
+# Args (17):
 # ---------------
 # SpringID       Zero length element ID
 # NodeI          Node i ID
@@ -20,6 +20,7 @@
 #                   1: Reduced beam section (RBS)
 #                   2: Other than RBS
 #                   3: Pinned # TODO
+# check          If given, print IMK model parameters
 # 
 # ---------------
 # Reference:
@@ -30,7 +31,7 @@
 # --------------------------------------------------------------------------------
 
 
-proc BeamHinge {SpringID NodeI NodeJ E fy Ix d htw bftf ry L Ls Lb My type_} {
+proc BeamHinge {SpringID NodeI NodeJ E fy Ix d htw bftf ry L Ls Lb My type_ {check ""}} {
 
     set n 10.0;
     set c1 1.0;
@@ -62,9 +63,9 @@ proc BeamHinge {SpringID NodeI NodeJ E fy Ix d htw bftf ry L Ls Lb My type_} {
         element zeroLength $SpringID $NodeI $NodeJ -mat 99 99 9 -dir 1 2 6;
     } else {
         # TODO Corrected rotations to account for elastic deformations
-        set theta_y [expr $My/(6 * $E * $Ix / $L)];
-        set theta_p [expr $theta_p - ($McMy-1.0)*$My/(6 * $E * $Ix / $L)];
-        set theta_pc [expr $theta_pc + $theta_y + ($McMy-1.0)*$My/(6 * $E * $Ix / $L)];
+        # set theta_y [expr $My/(6 * $E * $Ix / $L)];
+        # set theta_p [expr $theta_p - ($McMy-1.0)*$My/(6 * $E * $Ix / $L)];
+        # set theta_pc [expr $theta_pc + $theta_y + ($McMy-1.0)*$My/(6 * $E * $Ix / $L)];
         set theta_u 0.2;
         set D 1.0;
         set Res 0.4;
@@ -72,5 +73,10 @@ proc BeamHinge {SpringID NodeI NodeJ E fy Ix d htw bftf ry L Ls Lb My type_} {
         uniaxialMaterial IMKBilin $SpringID $K $theta_p $theta_pc $theta_u $My $McMy $Res $theta_p $theta_pc $theta_u $My $McMy $Res $Lamda $Lamda $Lamda $c $c $c $D $D;
         element zeroLength $SpringID $NodeI $NodeJ -mat 99 99 $SpringID -dir 1 2 6;
         # element zeroLength $SpringID $NodeI $NodeJ -mat 99 99 99 -dir 1 2 6;  # TODO
+
+        if {$check ne ""} {
+            puts "$check:\nKs: $K, My: $My, theta_p: $theta_p, theta_pc: $theta_pc, Res: $Res"
+        }
     }
+
 }
