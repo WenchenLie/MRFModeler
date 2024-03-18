@@ -1,4 +1,4 @@
-import func
+from . import func
 from typing import Dict, Tuple, List, Literal
 
 

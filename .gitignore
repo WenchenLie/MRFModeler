@@ -165,3 +165,5 @@ temp*.tcl
 temp*.py
 temp*.py
 temp*.tcl
+/output
+/GMs

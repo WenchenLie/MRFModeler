@@ -1,4 +1,4 @@
-import func
+from . import func
 
 
 class BuildingGeometry:

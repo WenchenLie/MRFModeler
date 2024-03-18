@@ -1,10 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from MRFHelper import Frame
+    from .MRFhelper import Frame
 from typing import Dict
 from wsection import WSection
-import func
+from . import func
 
 
 class StructuralComponents:

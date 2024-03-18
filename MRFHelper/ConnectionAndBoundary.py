@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from MRFHelper import Frame
-import func
+    from .MRFhelper import Frame
+from . import func
 from typing import Literal
 
 

@@ -1,11 +1,12 @@
+from pathlib import Path
 from typing import Literal
-from BuildingGeometry import BuildingGeometry
-from StructuralComponents import StructuralComponents
-from ConnectionAndBoundary import ConnectionAndBoundary
-from LoadAndMaterial import LoadAndMaterial
-from UserCommand import UserCommand
-import WriteInfo
-import WriteScript
+from .BuildingGeometry import BuildingGeometry
+from .StructuralComponents import StructuralComponents
+from .ConnectionAndBoundary import ConnectionAndBoundary
+from .LoadAndMaterial import LoadAndMaterial
+from .UserCommand import UserCommand
+from . import WriteInfo
+from . import WriteScript
 
 
 class Frame:
@@ -62,8 +63,11 @@ class Frame:
         self.LoadAndMaterial._calculate_load(self)
         self.LoadAndMaterial._calculate_PPy(self)
 
-    def generate_tcl_script(self):
+    def generate_tcl_script(self, dir_):
         """Write tcl script"""
+        self.output_path = Path(dir_)
+        if not self.output_path.exists():
+            Path.mkdir(self.output_path)
         self.builiding_info = WriteInfo.write_info(self)
         WriteScript.WriteScript(self)
 

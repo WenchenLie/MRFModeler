@@ -1,12 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from MRFHelper import Frame
+    from .MRFhelper import Frame
 from pathlib import Path
 from tkinter import messagebox
 import matplotlib.pyplot as plt
 from typing import Dict, Tuple, Union, Type
-import re
 
 
 """
@@ -1276,7 +1275,7 @@ class WriteScript:
 
     def save(self):
         model_name = self.frame.frame_name
-        plt.savefig(f'{model_name}.png', dpi=1200)
+        plt.savefig(self.frame.output_path/f'{model_name}.png', dpi=1200)
         plt.show()
         # TODO
         # if Path(f'{model_name}.tcl').exists:
@@ -1287,7 +1286,7 @@ class WriteScript:
         #         print('The tcl script was not generated!')
         #         return
         text_to_write = '\n'.join(self.tcl_script)
-        with open(f'{model_name}.tcl', 'w') as f:
+        with open(self.frame.output_path/f'{model_name}.tcl', 'w') as f:
             f.write(text_to_write)
         if self.Nrecorder < 512:
             print('\n----------------- Success -----------------------')
@@ -1302,12 +1301,10 @@ class WriteScript:
         line2 = self.line_frag['gminfo'][1]
         print(f'The user still need to modify lines {line1} - {line2} to difine the ground motion information')
         print('The generated files as follow:')
-        path_ = Path(f'{model_name}.tcl').absolute()
-        print(f'{path_}')
-        path_ = Path(f'{model_name}.png').absolute()
-        print(f'{path_}')
-        path_ = path_.parent / 'Model Information.txt'
-        print(f'{path_}')
+        path_ = self.frame.output_path
+        print(Path(path_/f'{model_name}.tcl').absolute())
+        print(Path(path_/f'{model_name}.png').absolute())
+        print(Path(path_/f'Model Information_{model_name}.txt').absolute())
         print('-------------------------------------------------\n')
 
 

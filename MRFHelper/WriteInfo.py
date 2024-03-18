@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from MRFHelper import Frame
+    from .MRFhelper import Frame
 import datetime
 import pandas as pd
 
@@ -112,7 +112,7 @@ def write_info(frame: Frame, file_name='Model Information') -> str:
     s = 'Yes (Parallelogram)' if frame.ConnectionAndBoundary.panel_zone_deformation else 'No (Cruciform)'
     text += f'Consider panel zone deformation: {s}\n'
 
-    with open(file_name+'.txt', 'w') as f:
+    with open(frame.output_path/(file_name+f'_{frame.frame_name}.txt'), 'w') as f:
         f.write(text)
     # print(text)
     return text
