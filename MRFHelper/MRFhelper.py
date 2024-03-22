@@ -73,7 +73,7 @@ class Frame:
 
 
 
-def Repository(model: Literal['4SMRF', '3S_Benchmark', '9S_Benchmark']) -> Frame:
+def Repository(model: Literal['4SMRF_AS', '4SMRF_AE', '3S_Benchmark', '9S_Benchmark']) -> Frame:
     """Get an available model from the repository
 
     Args:
@@ -82,7 +82,7 @@ def Repository(model: Literal['4SMRF', '3S_Benchmark', '9S_Benchmark']) -> Frame
     Returns:
         Frame: Object of `Frame`
     """
-    model_repository = ['4SMRF', '3S_Benchmark', '9S_Benchmark']
+    model_repository = ['4SMRF_AS', '4SMRF_AE', '3S_Benchmark', '9S_Benchmark']
     if model not in model_repository:
         error = f'Model {model} is not available\n'
         error += f'Available models:\n'
@@ -94,8 +94,8 @@ def Repository(model: Literal['4SMRF', '3S_Benchmark', '9S_Benchmark']) -> Frame
 
 
 def _extract_model(model):
-    if model == '4SMRF':
-        frame = Frame('4SMRF')
+    if model == '4SMRF_AS':
+        frame = Frame('4SMRF_AS')
 
         # Step-1, set building geometry
         frame.BuildingGeometry.story_height = [4300, 4000, 4000, 4000]
@@ -145,10 +145,70 @@ def _extract_model(model):
 
         frame.all_steps_finished()
 
+        print('\nExtracted model: 4SMRF_AS')
         print('Archetype 4-story steel moment resisting frame:')
-        print('[1] Skiadopoulos Andronikos, Dimitrios Lignos. Design summaries of steel moment resisting frames with elastic and dissipative panel zones. National Conference on Earthquake Engineering. Zenodo (2022). https://doi.org/10.5281/zenodo.5962407')
-        print('[2] Skiadopoulos Andronikos, Dimitrios Lignos. Seismic demands of steel moment resisting frames with inelastic beam‐to‐column web panel zones. Earthquake Engineering & Structural Dynamics 51.7 (2022): 1591-1609.')
+        print('[1] Andronikos Skiadopoulos, Dimitrios Lignos. Design summaries of steel moment resisting frames with elastic and dissipative panel zones. National Conference on Earthquake Engineering. Zenodo (2022). https://doi.org/10.5281/zenodo.5962407')
+        print('[2] Andronikos Skiadopoulos, Dimitrios Lignos. Seismic demands of steel moment resisting frames with inelastic beam‐to‐column web panel zones. Earthquake Engineering & Structural Dynamics 51.7 (2022): 1591-1609.')
         return frame
+
+
+    if model == '4SMRF_AE':
+        frame = Frame('4SMRF_AE')
+
+        # Step-1, set building geometry
+        frame.BuildingGeometry.story_height = [4300, 4000, 4000, 4000]
+        frame.BuildingGeometry.bay_length = [6100, 6100, 6100]
+        frame.BuildingGeometry.plane_dimensions = (42700, 30500)
+        frame.BuildingGeometry.MF_number = 2
+        frame.BuildingGeometry.exterior_column_tributary_area = (6100+6100/2, 6100/2)
+        frame.BuildingGeometry.interior_column_tributary_area = (6100, 6100/2)
+        frame.step1_finished()
+
+        # Step-2, set structural component sections
+        # (floor, ['section1', 'section2', ...])
+        frame.StructuralComponents.set_beams(2, ['W21x73', 'W21x73', 'W21x73'])
+        frame.StructuralComponents.set_beams(3, ['W21x73', 'W21x73', 'W21x73'])
+        frame.StructuralComponents.set_beams(4, ['W21x57', 'W21x57', 'W21x57'])
+        frame.StructuralComponents.set_beams(5, ['W21x57', 'W21x57', 'W21x57'])
+        # (story, ['section1', 'section2', ...])
+        frame.StructuralComponents.set_columns(1, ['W24x103', 'W24x103', 'W24x103', 'W24x103'])
+        frame.StructuralComponents.set_columns(2, ['W24x103', 'W24x103', 'W24x103', 'W24x103'])
+        frame.StructuralComponents.set_columns(3, ['W24x103', 'W24x103', 'W24x103', 'W24x103'])
+        frame.StructuralComponents.set_columns(4, ['W24x62', 'W24x62', 'W24x62', 'W24x62'])
+        # (floor, [thickness1, thickness2, ...])
+        frame.StructuralComponents.set_doubler_plate(2, [0, 7.9, 7.9, 0])
+        frame.StructuralComponents.set_doubler_plate(3, [0, 7.9, 7.9, 0])
+        frame.StructuralComponents.set_doubler_plate(4, [0, 7.9, 7.9, 0])
+        frame.StructuralComponents.set_doubler_plate(5, [0, 7.9, 7.9, 0])
+        frame.StructuralComponents.set_column_splice(3)  # Floor numbers where the column splices are located
+        frame.step2_finished()
+
+        # Step-3, set load and material property
+        # ([numbers of floor or story], [load values])
+        frame.LoadAndMaterial.set_dead_load([2, 3, 4, 5], [4.3e-3, 4.3e-3, 4.3e-3, 4.3e-3])
+        frame.LoadAndMaterial.set_live_load([2, 3, 4, 5], [2.4e-3, 2.4e-3, 2.4e-3, 0.96e-3])
+        frame.LoadAndMaterial.set_cladding_load([1, 2, 3, 4], [1.2e-3, 1.2e-3, 1.2e-3, 1.2e-3])
+        # ({load type: combination coefficient})
+        frame.LoadAndMaterial.set_weight_combination_coefficients({'Dead': 1.05, 'Live': 0.25, 'Cladding': 1.05})
+        frame.LoadAndMaterial.set_mass_combination_coefficients({'Dead': 1, 'Live': 0, 'Cladding': 1})
+        frame.LoadAndMaterial.set_material(206000, 345, 345)
+        frame.step3_finished()
+
+        # Step-4, set connection and boundary condition
+        # Loads and masses are temporarily not specified
+        frame.ConnectionAndBoundary.set_base_support('Fixed')
+        frame.ConnectionAndBoundary.set_beam_column_connection('RBS')
+        frame.ConnectionAndBoundary.set_panel_zone_deformation(True)
+        frame.ConnectionAndBoundary.rigid_disphragm = True
+        frame.step4_finished()
+
+        frame.all_steps_finished()
+        print('\nExtracted model: 4SMRF_AE')
+        print('[1] Ahmed Elkady, Dimitrios Lignos. Modeling of the composite action in fully restrained beam-to-column connections: implications in the seismic design and collapse capacity of steel special moment frames. Earthquake Engineering & Structural Dynamics 43.13 (2014): 1935-1954')
+        print('[2] Ahmed Elkady, Dimitrios Lignos. Effect of gravity framing on the overstrength and collapse capacity of steel frame buildings with perimeter special moment frames. Earthquake Engineering & Structural Dynamics 44.8 (2015): 1289-1307.')
+        print('[3] Ahmed Elkady, Collapse risk assessment of steel moment resisting frames designed with deep wide-flange columns in seismic regions. McGill University (Canada), 2016.')
+        return frame
+
 
     if model == '3S_Benchmark':
         frame = Frame('3S_Benchmark')
@@ -197,7 +257,8 @@ def _extract_model(model):
         frame.LoadAndMaterial.F_node[3] = [479/5*1e4] * 5
         frame.LoadAndMaterial.F_node[4] = [520/5*1e4] * 5
 
-        print('3-story benchmark steel moment resisting frame')
+        print('\nExtracted model: 3S_Benchmark')
+        print('(3-story benchmark steel moment resisting frame)')
         return frame
 
 
@@ -281,5 +342,6 @@ def _extract_model(model):
         frame.LoadAndMaterial.F_node[10] = [495/5*1e4] * 6
         frame.LoadAndMaterial.F_node[11] = [535/5*1e4] * 6
 
-        print('9-story benchmark steel moment resisting frame')
+        print('\nExtracted model: 9S_Benchmark')
+        print('(9-story benchmark steel moment resisting frame)')
         return frame

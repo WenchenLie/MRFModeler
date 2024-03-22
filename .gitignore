@@ -168,3 +168,8 @@ temp*.tcl
 /output
 /GMs
 /doc/Notation.pptx
+/打包.bat
+/上传.bat
+setup.py
+token.txt
+
