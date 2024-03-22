@@ -1,3 +1,4 @@
+# MRFHelper
 MRFMolder可用于生成钢框架OpenSees二维平面模型的tcl脚本，适用于对钢框架结构进行后续时程分析、Pushover分析等。
 
 # 安装
