@@ -115,7 +115,7 @@ class WriteScript:
         self.writepy('PO = 0')
         self.write('set ShowAnimation 1;  # $$$')
         self.writepy('ShowAnimation = 1')
-        self.write('set MPCO 1;  # $$$')
+        self.write('set MPCO 0;  # $$$')
         self.write()
         self.writepy()
         self.write('# Ground motion information')
@@ -137,8 +137,8 @@ class WriteScript:
         self.writepy('FVduration = 30')
         self.write('set EqSF 2.0;  # $$$')
         self.writepy('EqSF = 2.0')
-        self.write('set GMFile "GMs/$GMname.th";  # $$$')
-        self.writepy('GMFile = f"GMs/{GMname}.th"')
+        self.write('set GMFile "F:/MRF/GMs/$GMname.th";  # $$$')
+        self.writepy('GMFile = f"F:/MRF/GMs/{GMname}.th"')
         self.write('set subroutines "F:/MRF/subroutines";  # $$$')
         self.write('set temp "F:/MRF/temp";  # $$$')
         line2 = self.Nlines
@@ -551,11 +551,11 @@ class WriteScript:
                 jnode2 = self.get_id(10, FF, BB + 1, 5)
                 midnode = self.get_id(10, FF, BB, 8)
                 if inode1 in self.nodes_Id.keys():
-                    inode = inode1
+                    inode = self.get_id(10, FF, BB, 4)
                 else:
                     inode = inode2
                 if jnode1 in self.nodes_Id.keys():
-                    jnode = jnode1
+                    jnode = self.get_id(10, FF, BB + 1, 5)
                 else:
                     jnode = jnode2
                 if int(midnode) in self.nodes_Id.keys():
