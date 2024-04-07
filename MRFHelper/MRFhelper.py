@@ -9,7 +9,11 @@ from . import WriteInfo
 from . import WriteScript
 
 
+VERSION = '1.1'
+
 class Frame:
+    version = VERSION
+
     def __init__(self, frame_name: str, notes: str=None):
         """Use this class to define structural parameters of steel moment resisting frame (MRF)
         and write tcl script for analysis using OpenSees. Make sure all the units are [N, mm, t].

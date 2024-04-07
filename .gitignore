@@ -172,4 +172,4 @@ temp*.tcl
 /上传.bat
 setup.py
 token.txt
-
+test/
