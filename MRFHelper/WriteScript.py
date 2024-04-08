@@ -545,19 +545,9 @@ class WriteScript:
             for BB in range(1, frame.bays + 1):
                 A = frame.StructuralComponents.beam_properties[FF][BB-1][5]
                 I = frame.StructuralComponents.beam_properties[FF][BB-1][6]
-                inode1 = self.get_id(10, FF, BB, 3)
-                jnode1 = self.get_id(10, FF, BB + 1, 6)
-                inode2 = self.get_id(10, FF, BB, 4)
-                jnode2 = self.get_id(10, FF, BB + 1, 5)
                 midnode = self.get_id(10, FF, BB, 8)
-                if inode1 in self.nodes_Id.keys():
-                    inode = self.get_id(10, FF, BB, 4)
-                else:
-                    inode = inode2
-                if jnode1 in self.nodes_Id.keys():
-                    jnode = self.get_id(10, FF, BB + 1, 5)
-                else:
-                    jnode = jnode2
+                inode = self.get_id(10, FF, BB, 4)
+                jnode = self.get_id(10, FF, BB + 1, 5)
                 if int(midnode) in self.nodes_Id.keys():
                     # beam splice exists
                     Id_l = self.get_id(10, FF, BB, 11)
@@ -576,8 +566,8 @@ class WriteScript:
                     self.ele(inode, jnode, Id=Id)
             self.write(*write_temp)
             self.writepy(*write_temp_py)
-        self.write('')
-        self.writepy('')
+        self.write()
+        self.writepy()
 
         # Panel zones
         self.write('# Panel zones')
@@ -990,12 +980,12 @@ class WriteScript:
                 inode = self.control_nodes[SS - 2]
             jnode = self.control_nodes[SS - 1]
             if frame.recorders['Drift']:
-                self.write(f'recorder Drift -file $MainFolder/$SubFolder/SDR{SS}_MF.out -iNode {inode} -jNode {jnode} -dof 1 -perpDirn 2;')
-                self.writepy(f'# ops.recorder("Drift", "-file", str(MainFolder/SubFolder/"SDR{SS}_MF.out"), "-iNode", {inode}, "-jNode", {jnode}, "-dof", 1, "-perpDirn", 2)')
+                self.write(f'recorder Drift -file $MainFolder/$SubFolder/SDR{SS}.out -iNode {inode} -jNode {jnode} -dof 1 -perpDirn 2;')
+                self.writepy(f'# ops.recorder("Drift", "-file", str(MainFolder/SubFolder/"SDR{SS}.out"), "-iNode", {inode}, "-jNode", {jnode}, "-dof", 1, "-perpDirn", 2)')
                 self.add_recorder()
         if frame.recorders['Drift']:
-            self.write(f'recorder Drift -file $MainFolder/$SubFolder/SDRALL_MF.out -iNode 10010100 -jNode {jnode} -dof 1 -perpDirn 2;')
-            self.writepy(f'# ops.recorder("Drift", "-file", str(MainFolder/SubFolder/"SDRALL_MF.out"), "-iNode", 10010100, "-jNode", {jnode}, "-dof", 1, "-perpDirn", 2)')  # TODO drift recorder is not available in openseespy?
+            self.write(f'recorder Drift -file $MainFolder/$SubFolder/SDR_Roof.out -iNode 10010100 -jNode {jnode} -dof 1 -perpDirn 2;')
+            self.writepy(f'# ops.recorder("Drift", "-file", str(MainFolder/SubFolder/"SDR_Roof.out"), "-iNode", 10010100, "-jNode", {jnode}, "-dof", 1, "-perpDirn", 2)')  # TODO drift recorder is not available in openseespy?
             self.add_recorder()
         self.write()
         self.writepy()
@@ -1007,8 +997,8 @@ class WriteScript:
             else:
                 inode = self.control_nodes[FF - 2]
             if frame.recorders['FloorAccel']:
-                self.write(f'recorder Node -file $MainFolder/$SubFolder/RFA{FF}_MF.out -node {inode} -dof 1 accel;')
-                self.writepy(f'ops.recorder("Node", "-file", str(MainFolder/SubFolder/"RFA{FF}_MF.out"), "-node", {inode}, "-dof", 1, "accel")')
+                self.write(f'recorder Node -file $MainFolder/$SubFolder/RFA{FF}.out -node {inode} -dof 1 accel;')
+                self.writepy(f'ops.recorder("Node", "-file", str(MainFolder/SubFolder/"RFA{FF}.out"), "-node", {inode}, "-dof", 1, "accel")')
                 self.add_recorder()
         self.write()
         self.write('# Floor velocity')
@@ -1018,8 +1008,8 @@ class WriteScript:
             else:
                 inode = self.control_nodes[FF - 2]
             if frame.recorders['FloorVel']:
-                self.write(f'recorder Node -file $MainFolder/$SubFolder/RFV{FF}_MF.out -node {inode} -dof 1 vel;')
-                self.writepy(f'ops.recorder("Node", "-file", str(MainFolder/SubFolder/"RFV{FF}_MF.out"), "-node", {inode}, "-dof", 1, "vel")')
+                self.write(f'recorder Node -file $MainFolder/$SubFolder/RFV{FF}.out -node {inode} -dof 1 vel;')
+                self.writepy(f'ops.recorder("Node", "-file", str(MainFolder/SubFolder/"RFV{FF}.out"), "-node", {inode}, "-dof", 1, "vel")')
                 self.add_recorder()
         self.write()
         self.writepy()
@@ -1031,13 +1021,13 @@ class WriteScript:
             else:
                 inode = self.control_nodes[FF - 2]
             if frame.recorders['FloorDisp']:
-                self.write(f'recorder Node -file $MainFolder/$SubFolder/Disp{FF}_MF.out -node {inode} -dof 1 disp;')
-                self.writepy(f'ops.recorder("Node", "-file", str(MainFolder/SubFolder/"Disp{FF}_MF.out"), "-node", {inode}, "-dof", 1, "disp")')
+                self.write(f'recorder Node -file $MainFolder/$SubFolder/Disp{FF}.out -node {inode} -dof 1 disp;')
+                self.writepy(f'ops.recorder("Node", "-file", str(MainFolder/SubFolder/"Disp{FF}.out"), "-node", {inode}, "-dof", 1, "disp")')
                 self.add_recorder()
         self.write()
         self.writepy()
-        self.write('# Column forces')
-        self.writepy('# Column forces')
+        self.write('# Shear forces')
+        self.writepy('# Shear forces')
         for SS in range(1, frame.N + 1):
             write_temp = []
             write_temp_py = []
@@ -1046,15 +1036,15 @@ class WriteScript:
                 if not Id in self.eles_Id.keys():
                     Id = self.get_id(10, SS, AA, 2)
                 if frame.recorders['ColumnForce']:
-                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/Column{SS}{AA}.out -ele {Id} force;')
-                    write_temp_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"Column{SS}{AA}.out"), "-ele", {Id}, "force")')
+                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/Shear{SS}_{AA}.out -ele {Id} force;')
+                    write_temp_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"Shear{SS}_{AA}.out"), "-ele", {Id}, "force")')
                     self.add_recorder()
             self.write(*write_temp)
             self.writepy(*write_temp_py)
         self.write()
         self.writepy()
-        self.write('# Column springs forces')
-        self.writepy('# Column springs forces')
+        self.write('# Column springs')
+        self.writepy('# Column springs')  # TODO openseespy的塑性铰recorder有问题
         for SS in range(1, frame.N + 1):
             write_temp_b, write_temp_t = [], []
             write_temp_b_py, write_temp_t_py = [], []
@@ -1063,10 +1053,10 @@ class WriteScript:
                 Id_b = self.get_id(10, FF_b, AA, 7)
                 Id_t = self.get_id(10, FF_t, AA, 8)
                 if frame.recorders['ColumnHinge']:
-                    write_temp_b.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_b}{AA}T_F.out -ele {Id_b} force;')
-                    write_temp_b_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"ColSpring{FF_b}{AA}T_F.out"), "-ele", {Id_b}, "force")')
-                    write_temp_t.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_t}{AA}B_F.out -ele {Id_t} force;')
-                    write_temp_t_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"ColSpring{FF_t}{AA}B_F.out"), "-ele", {Id_t}, "force")')
+                    write_temp_b.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_b}_{AA}T.out -ele {Id_b} material 1 stressStrain;')
+                    write_temp_b_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"ColSpring{FF_b}_{AA}T.out"), "-ele", {Id_b}, "material", 1, "stressStrain")')
+                    write_temp_t.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_t}_{AA}B.out -ele {Id_t} material 1 stressStrain;')
+                    write_temp_t_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"ColSpring{FF_t}_{AA}B.out"), "-ele", {Id_t}, "material", 1, "stressStrain")')
                     self.add_recorder()
                     self.add_recorder()
             self.write(*write_temp_b)
@@ -1075,30 +1065,8 @@ class WriteScript:
             self.writepy(*write_temp_t_py)
         self.write()
         self.writepy()
-        self.write('# Column springs rotations')
-        self.writepy('# Column springs rotations')
-        for SS in range(1, frame.N + 1):
-            write_temp_b, write_temp_t = [], []
-            write_temp_b_py, write_temp_t_py = [], []
-            FF_b, FF_t = SS, SS + 1
-            for AA in range(1, frame.axis + 1):
-                Id_b = self.get_id(10, FF_b, AA, 7)
-                Id_t = self.get_id(10, FF_t, AA, 8)
-                if frame.recorders['ColumnHinge']:
-                    write_temp_b.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_b}{AA}T_D.out -ele {Id_b} deformation;')
-                    write_temp_b_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"ColSpring{FF_b}{AA}T_D.out"), "-ele", {Id_b}, "deformation")')
-                    write_temp_t.append(f'recorder Element -file $MainFolder/$SubFolder/ColSpring{FF_t}{AA}B_D.out -ele {Id_t} deformation;')
-                    write_temp_t_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"ColSpring{FF_t}{AA}B_D.out"), "-ele", {Id_t}, "deformation")')
-                    self.add_recorder()
-                    self.add_recorder()
-            self.write(*write_temp_b)
-            self.writepy(*write_temp_b_py)
-            self.write(*write_temp_t)
-            self.writepy(*write_temp_t_py)
-        self.write()
-        self.writepy()
-        self.write('# Beam springs forces')
-        self.writepy('# Beam springs forces')
+        self.write('# Beam springs')
+        self.writepy('# Beam springs')
         for FF in range(2, frame.N + 2):
             write_temp = []
             write_temp_py = []
@@ -1107,38 +1075,18 @@ class WriteScript:
                 Id_l = self.get_id(10, FF, AA_l, 9)
                 Id_r = self.get_id(10, FF, AA_r, 10)
                 if frame.recorders['BeamHinge']:
-                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}{AA_l}R_F.out -ele {Id_l} force;')
-                    write_temp_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"BeamSpring{FF}{AA_l}R_F.out"), "-ele", {Id_l}, "force")')
-                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}{AA_r}L_F.out -ele {Id_r} force;')
-                    write_temp_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"BeamSpring{FF}{AA_r}L_F.out"), "-ele", {Id_r}, "force")')
+                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}_{AA_l}R.out -ele {Id_l} material 1 stressStrain;')
+                    write_temp_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"BeamSpring{FF}_{AA_l}R.out"), "-ele", {Id_l}, "material", 1, "stressStrain")')
+                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}_{AA_r}L.out -ele {Id_r} material 1 stressStrain;')
+                    write_temp_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"BeamSpring{FF}_{AA_r}L.out"), "-ele", {Id_r}, "material", 1, "stressStrain")')
                     self.add_recorder()
                     self.add_recorder()
             self.write(*write_temp)
             self.writepy(*write_temp_py)
         self.write()
         self.writepy()
-        self.write('# Beam springs rotations')
-        self.writepy('# Beam springs rotations')
-        for FF in range(2, frame.N + 2):
-            write_temp = []
-            write_temp_py = []
-            for BB in range(1, frame.bays + 1):
-                AA_l, AA_r = BB, BB + 1
-                Id_l = self.get_id(10, FF, AA_l, 9)
-                Id_r = self.get_id(10, FF, AA_r, 10)
-                if frame.recorders['BeamHinge']:
-                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}{AA_l}R_D.out -ele {Id_l} deformation;')
-                    write_temp_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"BeamSpring{FF}{AA_l}R_D.out"), "-ele", {Id_l}, "deformation")')
-                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/BeamSpring{FF}{AA_r}L_D.out -ele {Id_r} deformation;')
-                    write_temp_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"BeamSpring{FF}{AA_r}L_D.out"), "-ele", {Id_r}, "deformation")')
-                    self.add_recorder()
-                    self.add_recorder()
-            self.write(*write_temp)
-            self.writepy(*write_temp_py)
-        self.write()
-        self.writepy()
-        self.write('# Panel zone spring forces (if any)')
-        self.writepy('# Panel zone spring forces (if any)')
+        self.write('# Panel zone springs (if any)')
+        self.writepy('# Panel zone springs (if any)')
         for FF in range(2, frame.N + 2):
             if not frame.ConnectionAndBoundary.panel_zone_deformation:
                 break
@@ -1147,25 +1095,8 @@ class WriteScript:
             for AA in range(1, frame.axis + 1):
                 Id = self.get_id(11, FF, AA, 0)
                 if frame.recorders['PanelZone']:
-                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/PZ{FF}{AA}_F.out -ele {Id} force;')
-                    write_temp_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"PZ{FF}{AA}_F.out"), "-ele", {Id}, "force")')
-                    self.add_recorder()
-            self.write(*write_temp)
-            self.writepy(*write_temp_py)
-        self.write()
-        self.writepy()
-        self.write('# Panel zone spring deforamtions (if any)')
-        self.writepy('# Panel zone spring deforamtions (if any)')
-        for FF in range(2, frame.N + 2):
-            if not frame.ConnectionAndBoundary.panel_zone_deformation:
-                break
-            write_temp = []
-            write_temp_py = []
-            for AA in range(1, frame.axis + 1):
-                Id = self.get_id(11, FF, AA, 0)
-                if frame.recorders['PanelZone']:
-                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/PZ{FF}{AA}_D.out -ele {Id} deformation;')
-                    write_temp_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"PZ{FF}{AA}_D.out"), "-ele", {Id}, "deformation")')
+                    write_temp.append(f'recorder Element -file $MainFolder/$SubFolder/PZ{FF}_{AA}.out -ele {Id} material 1 stressStrain;')
+                    write_temp_py.append(f'ops.recorder("Element", "-file", str(MainFolder/SubFolder/"PZ{FF}_{AA}.out"), "-ele", {Id}, "material", 1, "stressStrain")')
                     self.add_recorder()
             self.write(*write_temp)
             self.writepy(*write_temp_py)
