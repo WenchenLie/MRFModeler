@@ -5,8 +5,8 @@ from MRFHelper import MRFhelper
 # frame.generate_tcl_script('output')
 
 
-frame = MRFhelper.Repository('4SMRF_AE')
-# frame = MRFhelper.Repository('4SMRF_AS')
+# frame = MRFhelper.Repository('MRF_4S_AS')
+frame = MRFhelper.Repository('MRF_4S_AE')
 frame.generate_tcl_script('test')
 
 

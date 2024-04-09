@@ -22,6 +22,8 @@ class Frame:
             frame_name (str): Give a name for the considered frame
             notes (str, optional): Optional notes
         """
+        if not frame_name.isidentifier():
+            raise ValueError(f'Illegal frame name: {frame_name}')
         self.frame_name = frame_name
         self.notes = notes
         self.BuildingGeometry = BuildingGeometry()
@@ -77,7 +79,7 @@ class Frame:
 
 
 
-def Repository(model: Literal['4SMRF_AS', '4SMRF_AE', '3S_Benchmark', '9S_Benchmark']) -> Frame:
+def Repository(model: Literal['MRF_4S_AS', 'MRF_4S_AE', 'Benchmark_3S', 'Benchmark_9S']) -> Frame:
     """Get an available model from the repository
 
     Args:
@@ -86,11 +88,11 @@ def Repository(model: Literal['4SMRF_AS', '4SMRF_AE', '3S_Benchmark', '9S_Benchm
     Returns:
         Frame: Object of `Frame`
     """
-    model_repository = ['4SMRF_AS', '4SMRF_AE', '3S_Benchmark', '9S_Benchmark']
+    model_repository = ['MRF_4S_AS', 'MRF_4S_AE', 'Benchmark_3S', 'Benchmark_9S']
     if model not in model_repository:
         error = f'Model {model} is not available\n'
         error += f'Available models:\n'
-        available_models = ','.join(model_repository)
+        available_models = ', '.join(model_repository)
         error += f'    {available_models}'
         raise ValueError(error)
     frame = _extract_model(model)
@@ -98,8 +100,8 @@ def Repository(model: Literal['4SMRF_AS', '4SMRF_AE', '3S_Benchmark', '9S_Benchm
 
 
 def _extract_model(model):
-    if model == '4SMRF_AS':
-        frame = Frame('4SMRF_AS')
+    if model == 'MRF_4S_AS':
+        frame = Frame('MRF_4S_AS')
 
         # Step-1, set building geometry
         frame.BuildingGeometry.story_height = [4300, 4000, 4000, 4000]
@@ -156,8 +158,8 @@ def _extract_model(model):
         return frame
 
 
-    if model == '4SMRF_AE':
-        frame = Frame('4SMRF_AE')
+    if model == 'MRF_4S_AE':
+        frame = Frame('MRF_4S_AE')
 
         # Step-1, set building geometry
         frame.BuildingGeometry.story_height = [4300, 4000, 4000, 4000]
@@ -214,8 +216,8 @@ def _extract_model(model):
         return frame
 
 
-    if model == '3S_Benchmark':
-        frame = Frame('3S_Benchmark')
+    if model == 'Benchmark_3S':
+        frame = Frame('Benchmark_3S')
 
         # Step-1, set building geometry
         frame.BuildingGeometry.story_height = [3960, 3960, 3960]
@@ -266,8 +268,8 @@ def _extract_model(model):
         return frame
 
 
-    if model == '9S_Benchmark':
-        frame = Frame('9S_Benchmark')
+    if model == 'Benchmark_9S':
+        frame = Frame('Benchmark_9S')
 
         # Step-1, set building geometry
         frame.BuildingGeometry.story_height = [3650, 5490, 3960, 3960, 3960, 3960, 3960, 3960, 3960, 3960]
