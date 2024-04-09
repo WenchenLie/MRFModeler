@@ -157,6 +157,7 @@ class WriteScript:
         self.write('source BeamHinge.tcl')
         self.write('source ColumnHinge.tcl')
         self.write('source TimeHistorySolver.tcl;')
+        self.write('source PushoverAnalysis.tcl;')
         self.write()
         self.write('# Results folders')
         self.writepy('# Results folders')
@@ -861,7 +862,6 @@ class WriteScript:
         self.write()
         self.writepy()
 
-# TODO write openseespy script
     def write_constraint(self):
         frame = self.frame
         s = f' Constraints '.center(80, '-')
@@ -1257,6 +1257,8 @@ class WriteScript:
         self.writepy()
         self.write('}')
         self.write()
+        self.write('wipeAnalysis')
+        self.writepy('ops.wipeAnalysis()')
         self.write('constraints Plain;')
         self.writepy('ops.constraints("Plain")')
         self.write('numberer RCM;')
@@ -1281,7 +1283,7 @@ class WriteScript:
         self.writepy()
 
 
-    def write_dynamic_analysis(self):  # TODO
+    def write_dynamic_analysis(self):
         frame = self.frame
         s = f' Time history analysis '.center(80, '-')
         self.write('# ' + s)
@@ -1378,8 +1380,6 @@ class WriteScript:
         self.writepy('    totalTime = GMdt * NumSteps')
         self.write('    set dtAnalysis [expr 1.0*$GMdt];')
         self.writepy('    dtAnalysis = 1.0 * GMdt')
-        story_1, story_typ = frame.BuildingGeometry.story_height[0], frame.BuildingGeometry.story_height[1]
-        # self.write(f'    DynamicAnalysisCollapseSolverX $GMdt $dtAnalysis $totTime $NStory 0.15 $MF_FloorNodes $MF_FloorNodes {story_1:.1f} {story_typ:.1f} 1 $StartTime $MaxRunTime $GMname;')
         self.write('    set CollapseDrift 0.1;')
         self.write('    set MaxAnalysisDrift 0.5;')
         self.write('    set maxRunTime 600.0;')
@@ -1434,20 +1434,26 @@ class WriteScript:
         self.write('    };')
         self.write(f'    set CtrlNode {self.control_nodes[-1]};')
         self.writepy(f'    CtrlNode = {self.control_nodes[-1]}')
-        self.write('    set CtrlDOF 1;')
-        self.writepy('    CtrlDOF = 1')
-        self.write(f'    set Dmax [expr 0.100*$Floor{frame.N+1}];')
-        self.writepy(f'    Dmax = 0.1 * Floor{frame.N+1}')
+        self.write('    set maxRoofDrift 0.1;  # $$$')
+        self.writepy('    maxRoofDrift = 0.1')
+        self.write(f'    set Dmax [expr $maxRoofDrift * $Floor{frame.N+1}];')
+        self.writepy(f'    Dmax = maxRoofDrift * Floor{frame.N+1}')
         self.write('    set Dincr [expr 0.5];')
         self.writepy('    Dincr = 0.5')
-        self.write('    set Nsteps [expr int($Dmax/$Dincr)];')
-        self.writepy('    Nsteps = int(Dmax / Dincr)')
-        self.write('    set ok 0;')
-        self.writepy('    ok = 0')
-        self.write('    set controlDisp 0.0;')
-        self.writepy('    controlDisp = 0.0')
-        self.write('    source LibAnalysisStaticParameters.tcl;')
-        self.write('    source SolutionAlgorithm.tcl;')
+        self.write('    set maxRunTime 600.0;')
+        self.writepy('    maxRunTime = 600.0')
+        self.write('    set result [PushoverAnalysis $CtrlNode $Dmax $Dincr $maxRunTime];')
+        self.writepy('    result = PushoverAnalysis(CtrlNode, Dmax, Dincr, maxRunTime)')
+        self.write('    set status [lindex $result 0];')
+        self.writepy('    status = result[0]')
+        self.write('    set roofDisp [lindex $result 1];')
+        self.writepy('    roofDisp = result[1]')
+        self.write('    puts "Running status: $status";')
+        self.writepy('    print(f"Running status: {status}")')
+        self.write('    puts "Roof displacement: $roofDisp";')
+        self.writepy('    print(f"Roof displacement: {roofDisp}")')
+        self.write('    puts "Roof drift ratio: [expr $roofDisp / $HBuilding]";')
+        self.writepy('    print(f"Roof drift ratio: {roofDisp / HBuilding}")')
         self.write()
         self.write('}')
         self.write()
@@ -1457,15 +1463,21 @@ class WriteScript:
     def write_info(self):
         frame = self.frame
         self.write()
+        self.writepy()
         s = f' Building information '.center(80, '-')
         self.write('# ' + s)
+        self.writepy('# ' + s)
         self.write('#')
+        self.writepy('#')
         text = frame.builiding_info
         lines = text.split('\n')
         for line in lines:
             self.write('# ' + line)
+            self.writepy('# ' + line)
         self.write()
         self.write()
+        self.writepy()
+        self.writepy()
 
 
     def add_panel_zone(self, Floor, Axis, X, Y, d_col, d_beam, type_, position):
@@ -1607,14 +1619,13 @@ class WriteScript:
         model_name = self.frame.frame_name
         plt.savefig(self.frame.output_path/f'{model_name}.png', dpi=1200)
         plt.show()
-        # TODO
-        # if Path(f'{model_name}.tcl').exists:
-        #     res = messagebox.askquestion('Warnning', f'"{model_name}.tcl" already exists. Do you want to overwrite it?')
-        #     if res == 'yes':
-        #         pass
-        #     else:
-        #         print('The tcl script was not generated!')
-        #         return
+        if Path(f'{model_name}.tcl').exists:
+            res = messagebox.askquestion('Warnning', f'"{model_name}.tcl" already exists. Do you want to overwrite it?')
+            if res == 'yes':
+                pass
+            else:
+                print('The tcl script was not generated!')
+                return
         text_to_write = '\n'.join(self.tcl_script)
         text_to_writepy = '\n'.join(self.py_script)
         with open(self.frame.output_path/f'{model_name}.tcl', 'w') as f:
