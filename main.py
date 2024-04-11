@@ -8,5 +8,3 @@ from MRFHelper import MRFhelper
 # frame = MRFhelper.Repository('MRF_4S_AS')
 frame = MRFhelper.Repository('MRF_4S_AE')
 frame.generate_tcl_script('test')
-
-

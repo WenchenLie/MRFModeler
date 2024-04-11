@@ -13,7 +13,6 @@ Generate tcl script for time history and pushover analysis using OpenSees
 Writen by: Wenchen Lie
 2024-03-17
 """
-# TODO 记录Openseespy的层间位移角
 
 class WriteScript:
     def __init__(self, frame: Frame) -> None:
@@ -33,7 +32,8 @@ class WriteScript:
         self.write_constraint()
         self.write_recorders()
         self.write_mass()
-        self.write_user_comments()
+        self.write_user_comments_tcl()
+        self.write_user_comments_py()
         self.write_eigen()
         self.write_gravity()
         self.write_dynamic_analysis()
@@ -82,6 +82,7 @@ class WriteScript:
         self.write()
         self.writepy()
         self.writepy('import os', start='')
+        self.writepy('import numpy as np', start='')
         self.writepy('from pathlib import Path', start='')
         self.writepy('import openseespy.opensees as ops', start='')
         self.writepy('from subroutines.BeamHinge import BeamHinge', start='')
@@ -91,7 +92,7 @@ class WriteScript:
         self.writepy('from subroutines.Spring_Rigid import Spring_Rigid', start='')
         self.writepy('from subroutines.TimeHistorySolver import TimeHistorySolver', start='')
         self.writepy('from subroutines.PushoverAnalysis import PushoverAnalysis', start='')
-        self.writepy('import time', start='')
+        self.writepy('from subroutines.DisplayModel2D import DisplayModel2D', start='')
         self.writepy('from math import pi', start='')
         self.writepy('from typing import Literal', start='')
         self.writepy()
@@ -983,7 +984,7 @@ class WriteScript:
                 self.add_recorder()
         if frame.recorders['Drift']:
             self.write(f'recorder Drift -file $MainFolder/$SubFolder/SDR_Roof.out -iNode 10010100 -jNode {jnode} -dof 1 -perpDirn 2;')
-            self.writepy(f'# ops.recorder("Drift", "-file", str(MainFolder/SubFolder/"SDR_Roof.out"), "-iNode", 10010100, "-jNode", {jnode}, "-dof", 1, "-perpDirn", 2)')  # TODO drift recorder is not available in openseespy?
+            self.writepy(f'# ops.recorder("Drift", "-file", str(MainFolder/SubFolder/"SDR_Roof.out"), "-iNode", 10010100, "-jNode", {jnode}, "-dof", 1, "-perpDirn", 2)')
             self.add_recorder()
         self.write()
         self.writepy()
@@ -1042,7 +1043,7 @@ class WriteScript:
         self.write()
         self.writepy()
         self.write('# Column springs')
-        self.writepy('# Column springs')  # TODO openseespy的塑性铰recorder有问题
+        self.writepy('# Column springs')
         for SS in range(1, frame.N + 1):
             write_temp_b, write_temp_t = [], []
             write_temp_b_py, write_temp_t_py = [], []
@@ -1147,8 +1148,8 @@ class WriteScript:
         self.writepy()
 
 
-    def write_user_comments(self):  # TODO openseespy version
-        uesr_commands = self.frame.UserComment.additional_commands
+    def write_user_comments_tcl(self):
+        uesr_commands = self.frame.UserComment.additional_commands_tcl
         if not uesr_commands:
             return
         s = f' User comments '.center(80, '-')
@@ -1161,7 +1162,7 @@ class WriteScript:
                 Id, x, y = int(paras[1]), float(paras[2]), float(paras[3])
                 if Id in self.nodes_Id.keys():
                     print(f'User command warning: node {Id} was already existed')
-                self.node(x, y, Id=Id, c='orange')
+                self.node(x, y, Id=Id, c='orange', check=False)
                 self.write(command['node'])
             elif type_ == 'mat':
                 self.write(command['mat'])
@@ -1170,11 +1171,37 @@ class WriteScript:
                 Id, inode, jnode = int(paras[2]), int(paras[3]), int(paras[4])
                 if Id in self.eles_Id.keys():
                     print(f'User command warning: element {Id} was already existed')
-                self.ele(inode, jnode, Id=Id, c='orange')
+                self.ele(inode, jnode, Id=Id, c='orange', check=False)
                 self.write(command['ele'])
             elif type_ == 'any':
                 self.write(command['any'])
         self.write()
+
+
+    def write_user_comments_py(self):
+        uesr_commands = self.frame.UserComment.additional_commands_py
+        if not uesr_commands:
+            return
+        s = f' User comments '.center(80, '-')
+        self.writepy('# ' + s)
+        self.writepy()
+        for command in uesr_commands:
+            type_ = list(command.keys())[0]
+            if type_ == 'node':
+                paras = command['node'].strip(')').strip('ops.node(').split(',')
+                Id, x, y = int(paras[0]), float(paras[1]), float(paras[2])
+                self.node(x, y, Id=Id, c='orange', check=False)
+                self.writepy(command['node'])
+            elif type_ == 'mat':
+                self.writepy(command['mat'])
+            elif type_ == 'ele':
+                paras = command['ele'].strip(')').split(',')
+                Id, inode, jnode = int(paras[1]), int(paras[2]), int(paras[3])
+                self.ele(inode, jnode, Id=Id, c='orange', check=False)
+                self.writepy(command['ele'])
+            elif type_ == 'any':
+                self.writepy(command['any'])
+        self.writepy()
 
 
     def write_eigen(self):
@@ -1291,6 +1318,9 @@ class WriteScript:
         self.write('if {$ShowAnimation == 1} {DisplayModel3D DeformedShape 5.00 100 100 1600 1000};')
         self.write()
         self.write('if {$EQ == 1} {')
+        MF_nodes_py = ', '.join([str(i) for i in self.control_nodes])
+        self.writepy(f'MF_FloorNodes = [{MF_nodes_py}]')
+        self.writepy()
         self.writepy('if EQorPO == "EQ":')
         self.write('')
         self.write('    # Rayleigh damping')
@@ -1365,9 +1395,7 @@ class WriteScript:
         self.write('    pattern UniformExcitation 200 1 -accel $AccelSeries;')
         self.writepy('    ops.pattern("UniformExcitation", 200, 1, "-accel", 200)')
         MF_nodes = ' '.join([str(i) for i in self.control_nodes])
-        MF_nodes_py = ', '.join([str(i) for i in self.control_nodes])
         self.write(f'    set MF_FloorNodes [list {MF_nodes}];')
-        self.writepy(f'    MF_FloorNodes = [{MF_nodes_py}]')
         self.write('    set GMduration [expr $GMdt*$GMpoints];')
         self.write('    set NumSteps [expr round(($GMduration + $FVduration)/$GMdt)];')
         self.write('    set totTime [expr $GMdt*$NumSteps];')
@@ -1381,10 +1409,14 @@ class WriteScript:
         self.write('    set controlled_time [lindex $result 1];')
         self.write('    puts "Running status: $status";')
         self.write('    puts "Controlled time: $controlled_time";')
-        self.writepy(f'    result = TimeHistorySolver(GMdt, totalTime, story_height, MF_FloorNodes, CollapseDrift, MaxAnalysisDrift, GMname, maxRunTime)')
+        self.writepy(f'    result = TimeHistorySolver(GMdt, totalTime, story_height, MF_FloorNodes, CollapseDrift, MaxAnalysisDrift, GMname, maxRunTime, ShowAnimation)')
         self.writepy('    print(f"Running status: {result[0]}")')
         self.writepy('    print(f"Control time: {result[1]}")')
         self.writepy('    print(f"Collapse: {bool(result[2])}")')
+        self.writepy('    for i in range(NStory):')
+        self.writepy('        SDR = result[3][:, i]')
+        self.writepy('        np.savetxt(MainFolder/SubFolder/f"SDR{i+1}.out", SDR, fmt="%.6f")')
+        self.writepy('    np.savetxt(MainFolder/SubFolder/f"SDR_Roof.out", result[4], fmt="%.6f")')
         self.write('')
         self.writepy('')
         self.write('}')
@@ -1428,14 +1460,13 @@ class WriteScript:
             self.writepy(f'    ops.load({Id}, F{FF}, 0.0, 0.0)')
         self.write('    };')
         self.write(f'    set CtrlNode {self.control_nodes[-1]};')
-        self.writepy(f'    CtrlNode = {self.control_nodes[-1]}')
         self.write('    set maxRoofDrift 0.1;  # $$$')
         self.write(f'    set Dmax [expr $maxRoofDrift * $Floor{frame.N+1}];')
         self.writepy(f'    Dmax = maxRoofDrift * Floor{frame.N+1}')
         self.write('    set Dincr [expr 0.5];')
         self.writepy('    Dincr = 0.5')
         self.write('    set result [PushoverAnalysis $CtrlNode $Dmax $Dincr $maxRunTime];')
-        self.writepy('    result = PushoverAnalysis(CtrlNode, Dmax, Dincr, maxRunTime)')
+        self.writepy('    result = PushoverAnalysis(MF_FloorNodes, story_height, Dmax, Dincr, maxRunTime, ShowAnimation)')
         self.write('    set status [lindex $result 0];')
         self.writepy('    status = result[0]')
         self.write('    set roofDisp [lindex $result 1];')
@@ -1446,6 +1477,10 @@ class WriteScript:
         self.writepy('    print(f"Roof displacement: {roofDisp}")')
         self.write('    puts "Roof drift ratio: [expr $roofDisp / $HBuilding]";')
         self.writepy('    print(f"Roof drift ratio: {roofDisp / HBuilding}")')
+        self.writepy('    for i in range(NStory):')
+        self.writepy('        SDR = result[2][:, i]')
+        self.writepy('        np.savetxt(MainFolder/SubFolder/f"SDR{i+1}.out", SDR, fmt="%.6f")')
+        self.writepy('    np.savetxt(MainFolder/SubFolder/f"SDR_Roof.out", result[3], fmt="%.6f")')
         self.write()
         self.write('}')
         self.write()
@@ -1454,6 +1489,7 @@ class WriteScript:
         self.writepy('return result')
         self.writepy()
         self.writepy()
+
 
     def write_info(self):
         frame = self.frame
@@ -1563,25 +1599,28 @@ class WriteScript:
             res += a
         return int(res)
 
-    def node(self, x: float | int, y: float | int, c: str='black', Id: int=None, size=2):
+
+    def node(self, x: float | int, y: float | int, c: str='black', Id: int=None, size=2, check=True):
         self.ax.plot(x, y, 'o', color=c, markersize=size)
         if Id:
-            if Id in self.nodes_Id.keys():
+            if (Id in self.nodes_Id.keys()) and check:
                 print('----- Waring -----')
                 print(f'Node id {Id} already exists')
             else:
                 self.nodes_Id[int(Id)] = (x, y)
     
-    def ele(self, iNode: int, jNode: int, c: str='blue', Id: int=None):
+
+    def ele(self, iNode: int, jNode: int, c: str='blue', Id: int=None, check=True):
         xi, yi = self.get_coord(iNode)
         xj, yj = self.get_coord(jNode)
         self.ax.plot([xi, xj], [yi, yj], color=c, lw=1)
         if Id:
-            if Id in self.eles_Id.keys():
+            if (Id in self.eles_Id.keys()) and check:
                 print('----- Waring -----')
                 print(f'Element id {Id} already exists')
             else:
                 self.eles_Id[Id] = (iNode, jNode)
+
 
     def zero_length(self, iNode: int, jNode: int, c: str='red', Id: int=None, size=7):
         xi, yi = self.get_coord(iNode)
@@ -1607,8 +1646,10 @@ class WriteScript:
             raise ValueError(f'Node id {Id} not exists')
         return self.nodes_Id[int(Id)]
 
+
     def add_recorder(self):
         self.Nrecorder += 1
+
 
     def save(self):
         model_name = self.frame.frame_name
@@ -1619,7 +1660,14 @@ class WriteScript:
             if res == 'yes':
                 pass
             else:
-                print('The tcl script was not generated!')
+                print('Scripts were not generated!')
+                return
+        if Path(f'{model_name}.py').exists:
+            res = messagebox.askquestion('Warnning', f'"{model_name}.py" already exists. Do you want to overwrite it?')
+            if res == 'yes':
+                pass
+            else:
+                print('Scripts were not generated!')
                 return
         text_to_write = '\n'.join(self.tcl_script)
         text_to_writepy = '\n'.join(self.py_script)
@@ -1631,9 +1679,9 @@ class WriteScript:
             print('\n----------------- Success -----------------------')
         else:
             print('\n----------------- Warning -----------------------')
-        print('The tcl script was generated successfully')
+        print('The tcl and openseespy scripts were generated successfully')
         if self.Nrecorder >= 512:
-            print(f'----- However, the number of recorders ({self.Nrecorder}) exceed the limit of operating system,')
+            print(f'----- But number of recorders ({self.Nrecorder}) exceed the limit of operating system,')
             print('      which may result in the inability to read ground motion files.')
             print('      It suggested to cancel the defination of some unimportant recorders.')
         line1 = self.line_frag['gminfo'][0]
@@ -1642,6 +1690,7 @@ class WriteScript:
         print('The generated files as follow:')
         path_ = self.frame.output_path
         print(Path(path_/f'{model_name}.tcl').absolute())
+        print(Path(path_/f'{model_name}.py').absolute())
         print(Path(path_/f'{model_name}.png').absolute())
         print(Path(path_/f'Model Information_{model_name}.txt').absolute())
         print('-------------------------------------------------\n')
