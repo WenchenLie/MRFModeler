@@ -112,7 +112,7 @@ class WriteScript:
         self.writepy('EqSF: float,')
         self.writepy('GMFile: Path,')
         self.writepy('maxRoofDrift: float,')
-        self.writepy('print_result: bool')
+        self.writepy('CollapseDrift: float,')
         self.writepy('):')
         self.writepy()
         self.write('wipe all;')
@@ -164,9 +164,6 @@ class WriteScript:
         self.write('file mkdir $MainFolder;')
         self.writepy('if not MainFolder.exists():')
         self.writepy('    os.mkdir(MainFolder)')
-        # self.write('file mkdir $MainFolder/EigenAnalysis;')  # TODO
-        # self.writepy('if not (MainFolder/"EigenAnalysis").exists():')
-        # self.writepy('    os.mkdir(MainFolder/"EigenAnalysis")')
         self.write('file mkdir $MainFolder/$SubFolder;')
         self.writepy('if not (MainFolder/SubFolder).exists():')
         self.writepy('    os.mkdir(MainFolder/SubFolder)')
@@ -943,16 +940,6 @@ class WriteScript:
         s = f' Recorders '.center(80, '-')
         self.write('# ' + s)
         self.writepy('# ' + s)
-        # self.write()  # TODO
-        # self.writepy()
-        # self.write('# Mode properties')
-        # self.writepy('# Mode properties')
-        # s = ' '.join([str(i) for i in self.control_nodes])
-        # s1 = ', '.join([str(i) for i in self.control_nodes])
-        # for FF in range(2, frame.N + 2):
-        #     self.write(f'recorder Node -file $MainFolder/EigenAnalysis/EigenVectorsMode{FF-1}.out -node {s} -dof 1 "eigen {FF-1}";')
-        #     self.writepy(f'ops.recorder("Node", "-file", str(MainFolder/"EigenAnalysis/EigenVectorsMode{FF-1}.out"), "-node", {s1}, "-dof", 1, "eigen {FF-1}")')
-        #     self.add_recorder()
         self.write()
         self.writepy()
         self.write('# Time')
@@ -1234,7 +1221,7 @@ class WriteScript:
         self.write()
         self.writepy()
 
-        self.write('set mode [list]')  # TODO
+        self.write('set mode [list]')
         self.writepy('mode = []')
         self.write('for {set i 1} {$i <= $NStory} {incr i} {')
         self.writepy('for i in range(1, NStory + 1):')
@@ -1252,7 +1239,7 @@ class WriteScript:
         self.writepy('    mode = []')
         self.write('};')
         self.write()
-        self.write('set file_T [open "$MainFolder/$SubFolder/Period.out" w];')  # TODO
+        self.write('set file_T [open "$MainFolder/$SubFolder/Period.out" w];')
         self.writepy('with open(MainFolder/SubFolder/"Period.out", "w") as f:')
         for SS in range(1, frame.N + 1):
             self.write(f'puts $file_T $T{SS};')
@@ -1418,8 +1405,7 @@ class WriteScript:
         self.writepy('    ops.pattern("UniformExcitation", 200, 1, "-accel", 200)')
         self.write('    set totTime [expr $GMduration + $FVduration];')
         self.writepy('    totalTime = GMduration + FVduration')
-        self.write('    set CollapseDrift 0.1;')
-        self.writepy('    CollapseDrift = 0.1')
+        self.write('    set CollapseDrift 0.1;  # $$$')
         self.write('    set MaxAnalysisDrift 0.5;')
         self.writepy('    MaxAnalysisDrift = 0.5')
         self.write('    set result [TimeHistorySolver $GMdt $GMduration $story_heights $MF_FloorNodes $CollapseDrift $MaxAnalysisDrift $GMname $maxRunTime $temp];')
@@ -1459,13 +1445,6 @@ class WriteScript:
             self.writepy(f'    m{FF} = {mass:.3f}')
         self.write()
         self.writepy()
-        # self.write('    set file [open "$MainFolder/EigenAnalysis/EigenVectorsMode1.out" r];')  # TODO
-        # self.write('    set first_line [gets $file];')
-        # self.write('    close $file')
-        # self.write('    set mode_list [split $first_line];')
-        # self.writepy('    with open(MainFolder/"EigenAnalysis/EigenVectorsMode1.out", "r") as f:')
-        # self.writepy('        mode_list = f.readlines()[0].split()')
-        # self.writepy('        mode_list = [float(i) for i in mode_list]')
         for FF in range(2, frame.N + 2):
             self.write(f'    set F{FF} [expr $m{FF} * [lindex $mode_list {FF-2}]];')
             self.writepy(f'    F{FF} = m{FF} * mode_list[{FF-2}]')
@@ -1673,14 +1652,14 @@ class WriteScript:
         model_name = self.frame.frame_name
         plt.savefig(self.frame.output_path/f'{model_name}.png', dpi=1200)
         plt.show()
-        if Path(f'{model_name}.tcl').exists:
+        if Path(self.frame.output_path/f'{model_name}.tcl').exists():
             res = messagebox.askquestion('Warnning', f'"{model_name}.tcl" already exists. Do you want to overwrite it?')
             if res == 'yes':
                 pass
             else:
                 print('Scripts were not generated!')
                 return
-        if Path(f'{model_name}.py').exists:
+        if Path(self.frame.output_path/f'{model_name}.py').exists():
             res = messagebox.askquestion('Warnning', f'"{model_name}.py" already exists. Do you want to overwrite it?')
             if res == 'yes':
                 pass
