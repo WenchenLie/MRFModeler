@@ -1408,7 +1408,7 @@ class WriteScript:
         self.write('    set CollapseDrift 0.1;  # $$$')
         self.write('    set MaxAnalysisDrift 0.5;')
         self.writepy('    MaxAnalysisDrift = 0.5')
-        self.write('    set result [TimeHistorySolver $GMdt $GMduration $story_heights $MF_FloorNodes $CollapseDrift $MaxAnalysisDrift $GMname $maxRunTime $temp];')
+        self.write('    set result [TimeHistorySolver $GMdt $totalTime $story_heights $MF_FloorNodes $CollapseDrift $MaxAnalysisDrift $GMname $maxRunTime $temp];')
         self.write('    set status [lindex $result 0];')
         self.write('    set controlled_time [lindex $result 1];')
         self.write('    puts "Running status: $status";')
