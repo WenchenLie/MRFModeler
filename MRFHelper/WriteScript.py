@@ -2,10 +2,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .MRFhelper import Frame
+import json
 from pathlib import Path
 from tkinter import messagebox
 import matplotlib.pyplot as plt
-from typing import Dict, Tuple, Union, Type
+from typing import Dict, Tuple
 
 
 """
@@ -1711,6 +1712,8 @@ class WriteScript:
             f.write(text_to_write)
         with open(self.frame.output_path/f'{model_name}.py', 'w') as f:
             f.write(text_to_writepy)
+        with open(self.frame.output_path/f'{model_name}.json', 'w') as f:
+            json.dump(self.frame.dict_info, f, indent=4)
         if self.Nrecorder < 512:
             print('\n----------------- Success -----------------------')
         else:

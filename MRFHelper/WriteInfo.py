@@ -5,8 +5,68 @@ if TYPE_CHECKING:
 import datetime
 import pandas as pd
 
+def write_info_to_dict(frame: Frame) -> dict:
+    info = {
+        "//": "All units are in 'N', 'mm', and 't'",
+        "name": frame.frame_name,
+        "notes": frame.notes,
+        "BuildingGeometry": {},
+        "StructuralComponents": {},
+        "LoadAndMaterial": {},
+        "ConnectionAndBoundary": {},
+    }
+    info["BuildingGeometry"] = {
+        "//": "Step 1",
+        "story_height": frame.BuildingGeometry.story_height,
+        "bay_length": frame.BuildingGeometry.bay_length,
+        "plane_dimensions": frame.BuildingGeometry.plane_dimensions,
+        "MF_number": frame.BuildingGeometry.MF_number,
+        "exterior_column_tributary_area": frame.BuildingGeometry.exterior_column_tributary_area,
+        "interior_column_tributary_area": frame.BuildingGeometry.interior_column_tributary_area
+    }
+    info["StructuralComponents"] = {
+        "//": "Step 2",
+        "beams": frame.StructuralComponents.beams,
+        "columns": frame.StructuralComponents.columns,
+        "set_doubler_plate": frame.StructuralComponents.doubler_plate,
+        "column_splice": frame.StructuralComponents.column_splice,
+        "//column_splice": "The story number where column splices locate",
+        "beam_splice": frame.StructuralComponents.beam_splice,
+        "//beam_splice": "The bay number where beam splices locate",
+        "RBS_length": frame.StructuralComponents.RBS_length_all,
+        "//RBS_length": "Fix the distance from beam hinge to panel zone edge (optional)"
+    }
+    info["LoadAndMaterial"] = {
+        "//": "Step 3",
+        "//rule": "floor/story number: load",
+        "dead_load": frame.LoadAndMaterial.dead_load,
+        "live_load": frame.LoadAndMaterial.live_load,
+        "clading_load": frame.LoadAndMaterial.cladding_load,
+        "weight_combination_coefficients": frame.LoadAndMaterial.cc_weight,
+        "mass_combination_coefficients": frame.LoadAndMaterial.cc_mass,
+        "material": {
+            "E": frame.LoadAndMaterial.E,
+            "fy_beam": frame.LoadAndMaterial.fy_beam,
+            "fy_column": frame.LoadAndMaterial.fy_column,
+            "miu": frame.LoadAndMaterial.miu
+        }
+    }
+    info["ConnectionAndBoundary"] = {
+        "//": "Step 4",
+        "base_support": frame.ConnectionAndBoundary.base_support,
+        "//base_support": "Fixed or Pinned",
+        "beam_column_connection": frame.ConnectionAndBoundary.beam_column_connection,
+        "//beam_column_connection": "Full, RBS, or Hinged",
+        "panel_zone_deformation": frame.ConnectionAndBoundary.panel_zone_deformation,
+        "//panel_zone_deformation": "true or false",
+        "soil_constraint": frame.ConnectionAndBoundary.soil_constraint,
+        "//soil_constraint": "Set soil constraint at specified floor (optional)"
+    }
+    info["References"] = None
+    return info
 
-def write_info(frame: Frame, file_name='Model Information') -> str:
+
+def write_info_to_tcl(frame: Frame, file_name='Model Information') -> str:
 
     text = f'Moment resisting frame model information\n'
     text += f'Frame name: {frame.frame_name}\n'
