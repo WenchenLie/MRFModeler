@@ -1,10 +1,11 @@
-import sys
 from pathlib import Path
-sys.path.append(Path(__file__).parent.parent.as_posix())
-from MRFHelper.MRFhelper import Frame
+try:
+    from MRFHelper.MRFhelper import Frame
+except ImportError:
+    raise ImportError('Run command "pip install mrfhelper" to install this package')
 
 
-frame = Frame('MRF4S_AS')
+frame = Frame('MRF4S')
 
 # Step-1, set building geometry
 frame.BuildingGeometry.story_height = [4300, 4000, 4000, 4000]

@@ -1,7 +1,8 @@
-import sys
 from pathlib import Path
-sys.path.append(Path(__file__).parent.parent.as_posix())
-from MRFHelper.MRFhelper import Frame
+try:
+    from MRFHelper.MRFhelper import Frame
+except ImportError:
+    raise ImportError('Run command "pip install mrfhelper" to install this package')
 
 
 frame = Frame('MRF_4S_AE')
