@@ -9,7 +9,7 @@ from . import WriteInfo
 from . import WriteScript
 
 
-VERSION = '2.0'
+VERSION = '2.1'
 
 class Frame:
     version = VERSION
