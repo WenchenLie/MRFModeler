@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .MRFhelper import Frame
 from typing import Dict
-from wsection import WSection
+from wsection import WSection, GBSection
 from . import func
 
 
@@ -135,7 +135,12 @@ class StructuralComponents:
         for floor, sections in self.beams.items():
             props = []
             for section in sections:
-                prop = WSection(section, fy_beam)
+                if section.startswith(('W', 'w')):
+                    prop = WSection(section, fy_beam)
+                elif section.startswith(('HW', 'HM', 'HN')):
+                    prop = GBSection(section, fy_beam)
+                else:
+                    raise ValueError(f'Invalid beam section: {section}')
                 #                  0        1       2        3        4        5       6        7       8
                 props.append([prop.bf, prop.d, prop.tw, prop.tf, prop.ry, prop.A, prop.Ix, prop.My, prop.h])
             self.beam_properties[floor] = props
@@ -145,7 +150,12 @@ class StructuralComponents:
         for story, sections in self.columns.items():
             props = []
             for section in sections:
-                prop = WSection(section, fy_column)
+                if section.startswith(('W', 'w')):
+                    prop = WSection(section, fy_beam)
+                elif section.startswith(('HW', 'HM', 'HN')):
+                    prop = GBSection(section, fy_beam)
+                else:
+                    raise ValueError(f'Invalid beam section: {section}')
                 #                  0        1       2        3        4        5       6        7       8
                 props.append([prop.bf, prop.d, prop.tw, prop.tf, prop.ry, prop.A, prop.Ix, prop.My, prop.h])
             self.column_properties[story] = props
