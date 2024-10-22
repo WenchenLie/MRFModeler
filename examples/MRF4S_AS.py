@@ -33,7 +33,7 @@ frame.StructuralComponents.set_doubler_plate(3, [6.35, 23.8125, 23.8125, 6.35])
 frame.StructuralComponents.set_doubler_plate(4, [6.35, 22.225, 22.225, 6.35])
 frame.StructuralComponents.set_doubler_plate(5, [6.35, 22.225, 22.225, 6.35])
 frame.StructuralComponents.set_column_splice(3)  # Floor numbers where the column splices are located
-# frame.StructuralComponents.set_beam_splice(2)  # Bay numbers where the beam splices are located
+frame.StructuralComponents.set_beam_splice(2)  # Bay numbers where the beam splices are located
 frame.step2_finished()
 
 # Step-3, set load and material property
