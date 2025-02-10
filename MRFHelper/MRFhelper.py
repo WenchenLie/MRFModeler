@@ -7,9 +7,10 @@ from .LoadAndMaterial import LoadAndMaterial
 from .UserCommand import UserCommand
 from . import WriteInfo
 from . import WriteScript
+from . import __version__
 
 
-VERSION = '2.1'
+VERSION = __version__
 
 class Frame:
     version = VERSION

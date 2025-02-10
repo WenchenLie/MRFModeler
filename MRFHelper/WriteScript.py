@@ -1454,6 +1454,13 @@ class WriteScript:
         for FF in range(2, frame.N + 2):
             self.write(f'    set F{FF} [expr $m{FF} * [lindex $mode_list {FF-2}]];')
             self.writepy(f'    F{FF} = m{FF} * mode_list[{FF-2}]')
+        self.write('    set file_pattern [open $MainFolder/$SubFolder/Pattern.out w]')
+        for FF in range(2, frame.N + 2):
+            self.write(f'    puts $file_pattern $F{FF}')
+        self.write('    close $file_pattern')
+        F_ls = ', '.join([f'F{FF}' for FF in range(2, frame.N + 2)])
+        self.writepy(f'    F_ls = [{F_ls}]')
+        self.writepy(f'    np.savetxt(MainFolder/SubFolder/"Pattern.out", F_ls, fmt="%.6f")')
         self.write('    pattern Plain 222 Linear {')
         self.writepy('    ops.timeSeries("Linear", 222)')
         self.writepy('    ops.pattern("Plain", 222, 222)')
@@ -1510,6 +1517,13 @@ class WriteScript:
         for FF in range(2, frame.N + 2):
             self.write(f'    set F{FF} [expr $m{FF} * [lindex $mode_list {FF-2}]];')
             self.writepy(f'    F{FF} = m{FF} * mode_list[{FF-2}]')
+        self.write('    set file_pattern [open $MainFolder/$SubFolder/Pattern.out w]')
+        for FF in range(2, frame.N + 2):
+            self.write(f'    puts $file_pattern $F{FF}')
+        self.write('    close $file_pattern')
+        F_ls = ', '.join([f'F{FF}' for FF in range(2, frame.N + 2)])
+        self.writepy(f'    F_ls = [{F_ls}]')
+        self.writepy(f'    np.savetxt(MainFolder/SubFolder/"Pattern.out", F_ls, fmt="%.6f")')
         self.write('    pattern Plain 222 Linear {')
         self.writepy('    ops.timeSeries("Linear", 222)')
         self.writepy('    ops.pattern("Plain", 222, 222)')
