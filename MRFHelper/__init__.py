@@ -1,4 +1,4 @@
-__version__ = '2.4'
+__version__ = '2.5'
 print()
 print('Tcl script generator for analysis of moment resisting frame using OpenSees')
 print('Developed by: Wenchen Lie, Guangzhou University, China')
