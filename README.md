@@ -9,7 +9,7 @@ MRFHelper 用于参数化生成 OpenSees 二维规则平面框架模型，支持
 
 开发和 OpenSeesPy 集成测试使用 Python 3.12；当前 `.venv` 为 Python 3.12，且测试依赖中包含 OpenSeesPy。可用 `uv sync --python .venv/Scripts/python.exe --extra test` 重建同样的环境。
 
-当前 MRFHelper 程序版本暂固定为 `2.6`。
+当前 MRFHelper 程序版本暂固定为 `2.7`。
 
 ## 通用接口
 

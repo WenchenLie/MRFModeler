@@ -5,11 +5,7 @@
     "notes": "Two-story RC frame loaded from JSON",
     "building_geometry": {
         "story_height": [3600, 3300],
-        "bay_length": [6000, 6000],
-        "plane_dimensions": [12000, 6000],
-        "mf_number": 2,
-        "exterior_column_tributary_area": [3000, 3000],
-        "interior_column_tributary_area": [6000, 3000]
+        "bay_length": [6000, 6000]
     },
     "structural_components": {
         "section_csv": "RCMRF_2s_sections.csv",

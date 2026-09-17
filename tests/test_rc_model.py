@@ -33,10 +33,6 @@ def build_rc_frame(
     geometry = frame.building_geometry
     geometry.story_height = [3600]
     geometry.bay_length = [6000]
-    geometry.plane_dimensions = (12000, 6000)
-    geometry.mf_number = 2
-    geometry.exterior_column_tributary_area = (3000, 3000)
-    geometry.interior_column_tributary_area = (6000, 3000)
     frame.finish_building_geometry()
 
     components = frame.structural_components
@@ -59,10 +55,10 @@ def build_rc_frame(
     return frame
 
 
-def test_version_is_fixed_at_2_6() -> None:
-    assert __version__ == "2.6"
-    assert Frame.version == "2.6"
-    assert RCFrame.version == "2.6"
+def test_version_is_fixed_at_2_6_1() -> None:
+    assert __version__ == "2.6.1"
+    assert Frame.version == "2.6.1"
+    assert RCFrame.version == "2.6.1"
 
 
 def test_bar_groups_and_section_geometry() -> None:
@@ -106,10 +102,6 @@ def test_arbitrary_section_names_and_undefined_reference_validation() -> None:
     geometry = frame.building_geometry
     geometry.story_height = [3600]
     geometry.bay_length = [6000]
-    geometry.plane_dimensions = (12000, 6000)
-    geometry.mf_number = 2
-    geometry.exterior_column_tributary_area = (3000, 3000)
-    geometry.interior_column_tributary_area = (6000, 3000)
     frame.finish_building_geometry()
     frame.structural_components.load_sections_csv(EXAMPLE_CSV)
     frame.structural_components.set_beams(2, ["S300x300"])
@@ -525,6 +517,7 @@ def test_json_round_trip_requires_external_section_csv(tmp_path: Path) -> None:
     assert loaded.structural_components.section_path == EXAMPLE_CSV.resolve()
     assert loaded.joint_materials["2:1"] == frame.joint_materials["2:1"]
     data = json.loads(model_path.read_text(encoding="utf-8"))
+    assert set(data["building_geometry"]) == {"story_height", "bay_length"}
     components = data["structural_components"]
     assert "model_schema_version" not in data
     assert "section_csv" in components

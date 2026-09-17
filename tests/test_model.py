@@ -15,10 +15,6 @@ def build_one_story_frame(*, finish: bool = True) -> Frame:
     geometry = frame.building_geometry
     geometry.story_height = [3000]
     geometry.bay_length = [6000]
-    geometry.plane_dimensions = (12000, 6000)
-    geometry.mf_number = 2
-    geometry.exterior_column_tributary_area = (3000, 3000)
-    geometry.interior_column_tributary_area = (6000, 3000)
     frame.finish_building_geometry()
 
     frame.structural_components.set_beams(2, ["W21x73"])
@@ -64,10 +60,6 @@ def test_direct_nodal_input_validation(method: str, args: tuple, message: str) -
     geometry = frame.building_geometry
     geometry.story_height = [3000]
     geometry.bay_length = [6000]
-    geometry.plane_dimensions = (6000, 6000)
-    geometry.mf_number = 1
-    geometry.exterior_column_tributary_area = (3000, 3000)
-    geometry.interior_column_tributary_area = (6000, 3000)
     frame.finish_building_geometry()
     frame.structural_components.set_beams(2, ["W21x73"])
     frame.structural_components.set_columns(1, ["W24x103", "W24x103"])
@@ -108,6 +100,13 @@ def test_public_api_uses_current_names_only() -> None:
     assert not hasattr(frame, "LoadAndMaterial")
     assert not hasattr(frame, "ConnectionAndBoundary")
     assert not hasattr(frame, "UserComment")
+    for redundant_name in (
+        "plane_dimensions",
+        "mf_number",
+        "exterior_column_tributary_area",
+        "interior_column_tributary_area",
+    ):
+        assert not hasattr(frame.building_geometry, redundant_name)
     frame.structural_components.set_rbs_length(125)
     assert frame.structural_components.rbs_length_all == 125
 
@@ -116,10 +115,6 @@ def test_missing_column_story_is_reported() -> None:
     frame = Frame("MissingColumn")
     frame.building_geometry.story_height = [3000, 3000]
     frame.building_geometry.bay_length = [6000]
-    frame.building_geometry.plane_dimensions = (12000, 6000)
-    frame.building_geometry.mf_number = 2
-    frame.building_geometry.exterior_column_tributary_area = (3000, 3000)
-    frame.building_geometry.interior_column_tributary_area = (6000, 3000)
     frame.finish_building_geometry()
     frame.structural_components.set_beams(2, ["W21x73"])
     frame.structural_components.set_beams(3, ["W21x73"])
@@ -191,6 +186,7 @@ def test_generation_is_headless_and_returns_artifacts(
     assert "<pre>" not in html_source
     assert "<svg" in html_source
     json_source = json.loads(paths["json"].read_text(encoding="utf-8"))
+    assert set(json_source["building_geometry"]) == {"//", "story_height", "bay_length"}
     load_data = json_source["load_and_material"]
     assert set(load_data) == {
         "//",

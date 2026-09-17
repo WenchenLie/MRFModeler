@@ -156,16 +156,6 @@ def from_json(file: str | Path) -> Frame:
     geometry = _required(dict_info, "building_geometry", "root")
     frame.building_geometry.story_height = _required(geometry, "story_height", "building_geometry")
     frame.building_geometry.bay_length = _required(geometry, "bay_length", "building_geometry")
-    frame.building_geometry.plane_dimensions = tuple(
-        _required(geometry, "plane_dimensions", "building_geometry")
-    )
-    frame.building_geometry.mf_number = _required(geometry, "mf_number", "building_geometry")
-    frame.building_geometry.exterior_column_tributary_area = tuple(
-        _required(geometry, "exterior_column_tributary_area", "building_geometry")
-    )
-    frame.building_geometry.interior_column_tributary_area = tuple(
-        _required(geometry, "interior_column_tributary_area", "building_geometry")
-    )
     frame.finish_building_geometry()
     # Step 2
     components = _required(dict_info, "structural_components", "root")

@@ -7,10 +7,6 @@ frame = Frame("MRF4S")
 # Step-1, set building geometry
 frame.building_geometry.story_height = [4300, 4000, 4000, 4000]
 frame.building_geometry.bay_length = [6100, 6100, 6100]
-frame.building_geometry.plane_dimensions = (42700, 30500)
-frame.building_geometry.mf_number = 2
-frame.building_geometry.exterior_column_tributary_area = (9150, 3050)
-frame.building_geometry.interior_column_tributary_area = (6100, 3050)
 frame.finish_building_geometry()
 
 # Step-2, set structural component sections

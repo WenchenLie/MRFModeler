@@ -7,10 +7,6 @@ frame = Frame("Benchmark_9S")
 # Step-1, set building geometry
 frame.building_geometry.story_height = [3650, 5490, 3960, 3960, 3960, 3960, 3960, 3960, 3960, 3960]
 frame.building_geometry.bay_length = [9150, 9150, 9150, 9150, 9150]
-frame.building_geometry.plane_dimensions = (9150 * 5, 9150 * 5)
-frame.building_geometry.mf_number = 6
-frame.building_geometry.exterior_column_tributary_area = (9150 / 2, 9150 / 2)
-frame.building_geometry.interior_column_tributary_area = (9150, 9150 / 2)
 frame.finish_building_geometry()
 
 # Step-2, set structural component sections

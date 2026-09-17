@@ -28,10 +28,6 @@ def write_info_to_dict(frame: Frame) -> dict:
         "//": "Step 1",
         "story_height": frame.building_geometry.story_height,
         "bay_length": frame.building_geometry.bay_length,
-        "plane_dimensions": frame.building_geometry.plane_dimensions,
-        "mf_number": frame.building_geometry.mf_number,
-        "exterior_column_tributary_area": frame.building_geometry.exterior_column_tributary_area,
-        "interior_column_tributary_area": frame.building_geometry.interior_column_tributary_area,
     }
     info["structural_components"] = {
         "//": "Step 2",
@@ -111,20 +107,7 @@ def write_info_to_tcl(frame: Frame, file_name="Model Information") -> str:
     text += f"Building height: {geometry.building_height}\n"
     text += f"Number of story: {frame.N}\n"
     text += f"Number of bays: {frame.bays}\n"
-    text += (
-        f"Plane dimensions [mm]: {geometry.plane_dimensions[0]} x {geometry.plane_dimensions[1]}\n"
-    )
-    text += f"Number of moment frames: {geometry.mf_number}\n"
-    text += (
-        "External column tributary area [mm]: "
-        f"{geometry.exterior_column_tributary_area[0]} x "
-        f"{geometry.exterior_column_tributary_area[1]}\n"
-    )
-    text += (
-        "Internal column tributary area [mm]: "
-        f"{geometry.interior_column_tributary_area[0]} x "
-        f"{geometry.interior_column_tributary_area[1]}\n\n\n"
-    )
+    text += "\n\n"
 
     # 2 structural components
     text += "-" * 15 + " 2. Structural Components " + "-" * 15 + "\n\n"

@@ -173,3 +173,5 @@ token.txt
 test/
 other/
 *.bat
+!publish_pypi.bat
+/.publish-dist*/

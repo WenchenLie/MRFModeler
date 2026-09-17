@@ -11,10 +11,6 @@ frame = RCFrame(name, notes="Two-story RC frame")
 geometry = frame.building_geometry
 geometry.story_height = [3600, 3300]
 geometry.bay_length = [6000, 6000]
-geometry.plane_dimensions = (12000, 6000)
-geometry.mf_number = 2
-geometry.exterior_column_tributary_area = (3000, 3000)
-geometry.interior_column_tributary_area = (6000, 3000)
 frame.finish_building_geometry()
 
 components = frame.structural_components

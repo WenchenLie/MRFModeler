@@ -22,7 +22,7 @@ class RCFrame(Frame):
     """Parameterized two-dimensional reinforced-concrete moment frame."""
 
     # OpenSAS parses this value as its model-script contract version.
-    version = "2.6"
+    version = "2.6.1"
     frame_type = "reinforced_concrete"
 
     def finish_building_geometry(self) -> None:
@@ -230,14 +230,6 @@ def write_rc_info_to_dict(frame: RCFrame) -> dict:
         "building_geometry": {
             "story_height": frame.building_geometry.story_height,
             "bay_length": frame.building_geometry.bay_length,
-            "plane_dimensions": frame.building_geometry.plane_dimensions,
-            "mf_number": frame.building_geometry.mf_number,
-            "exterior_column_tributary_area": (
-                frame.building_geometry.exterior_column_tributary_area
-            ),
-            "interior_column_tributary_area": (
-                frame.building_geometry.interior_column_tributary_area
-            ),
         },
         "structural_components": {
             "section_csv": components.section_source,
@@ -300,20 +292,7 @@ def write_rc_info_to_text(frame: RCFrame) -> str:
     text += f"Building height: {geometry.building_height}\n"
     text += f"Number of story: {frame.N}\n"
     text += f"Number of bays: {frame.bays}\n"
-    text += (
-        f"Plane dimensions [mm]: {geometry.plane_dimensions[0]} x {geometry.plane_dimensions[1]}\n"
-    )
-    text += f"Number of moment frames: {geometry.mf_number}\n"
-    text += (
-        "External column tributary area [mm]: "
-        f"{geometry.exterior_column_tributary_area[0]} x "
-        f"{geometry.exterior_column_tributary_area[1]}\n"
-    )
-    text += (
-        "Internal column tributary area [mm]: "
-        f"{geometry.interior_column_tributary_area[0]} x "
-        f"{geometry.interior_column_tributary_area[1]}\n\n\n"
-    )
+    text += "\n\n"
 
     # 2 Structural components
     text += "-" * 15 + " 2. Structural Components " + "-" * 15 + "\n\n"
@@ -412,16 +391,6 @@ def rc_frame_from_dict(data: dict, *, base_directory: str | Path = ".") -> RCFra
     geometry = _required(data, "building_geometry", "root")
     frame.building_geometry.story_height = _required(geometry, "story_height", "building_geometry")
     frame.building_geometry.bay_length = _required(geometry, "bay_length", "building_geometry")
-    frame.building_geometry.plane_dimensions = tuple(
-        _required(geometry, "plane_dimensions", "building_geometry")
-    )
-    frame.building_geometry.mf_number = _required(geometry, "mf_number", "building_geometry")
-    frame.building_geometry.exterior_column_tributary_area = tuple(
-        _required(geometry, "exterior_column_tributary_area", "building_geometry")
-    )
-    frame.building_geometry.interior_column_tributary_area = tuple(
-        _required(geometry, "interior_column_tributary_area", "building_geometry")
-    )
     frame.finish_building_geometry()
 
     components = _required(data, "structural_components", "root")

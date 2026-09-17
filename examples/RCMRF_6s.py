@@ -9,10 +9,6 @@ frame = RCFrame(name, notes="Six-story RC frame")
 geometry = frame.building_geometry
 geometry.story_height = [4300, 4000, 4000, 4000, 4000, 4000]
 geometry.bay_length = [6000, 3000, 6000]
-geometry.plane_dimensions = (15000, 36000)
-geometry.mf_number = 7
-geometry.exterior_column_tributary_area = (3000, 6000)
-geometry.interior_column_tributary_area = (4500, 6000)
 frame.finish_building_geometry()
 
 components = frame.structural_components
