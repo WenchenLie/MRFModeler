@@ -27,7 +27,7 @@ proc TimeHistorySolver {
     set Id_algorithm 0;
 
     wipeAnalysis
-    constraints Plain;
+    constraints Transformation;
     numberer RCM;
     system UmfPack;
     test EnergyIncr 1.0e-3 100;

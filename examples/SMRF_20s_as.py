@@ -1,6 +1,6 @@
 from pathlib import Path
-from MRFHelper import Frame
 
+from MRFHelper import Frame
 
 frame = Frame("MRF20S")
 
@@ -144,88 +144,27 @@ frame.structural_components.set_column_splice(
 frame.structural_components.set_beam_splice(2)  # Bay numbers where the beam splices are located
 frame.finish_structural_components()
 
-# Step-3, set load and material property
-# ([numbers of floor or story], [load values])
-frame.load_and_material.set_dead_load(
-    [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
-    [
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-        4.3e-3,
-    ],
+# Step-3, set nodal mass, vertical load, and material properties
+typical_mass = [16.7268, 11.1512, 11.1512, 16.7268]
+typical_load = [188862.8625, 125908.575, 125908.575, 188862.8625]
+moment_frame_mass = [
+    [16.8388, 11.2259, 11.2259, 16.8388],
+    *[typical_mass for _ in range(18)],
+    [14.4859, 9.6573, 9.6573, 14.4859],
+]
+moment_frame_vertical_load = [
+    [190015.7625, 126677.175, 126677.175, 190015.7625],
+    *[typical_load for _ in range(18)],
+    [155758.1625, 103838.775, 103838.775, 155758.1625],
+]
+frame.load_and_material.set_masses(
+    moment_frame_mass,
+    [266.3397, *[265.8168 for _ in range(18)], 255.3597],
 )
-frame.load_and_material.set_live_load(
-    [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
-    [
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        2.4e-3,
-        0.96e-3,
-    ],
+frame.load_and_material.set_loads(
+    moment_frame_vertical_load,
+    [3075525.45, *[3070145.25 for _ in range(18)], 2761607.25],
 )
-frame.load_and_material.set_cladding_load(
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
-    [
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-        1.2e-3,
-    ],
-)
-# ({load type: combination coefficient})
-frame.load_and_material.set_weight_combination_coefficients(
-    {"Dead": 1.05, "Live": 0.25, "Cladding": 1.05}
-)
-frame.load_and_material.set_mass_combination_coefficients({"Dead": 1, "Live": 0, "Cladding": 1})
 frame.load_and_material.set_material(206000, 345, 345)
 frame.finish_load_and_material()
 
@@ -236,7 +175,7 @@ frame.connection_and_boundary.set_panel_zone_deformation(True)
 frame.finish_connection_and_boundary()
 
 frame.finalize()
-frame.dict_info["References"] = [
+frame.dict_info["references"] = [
     "Archetype 4-story steel moment resisting frame",
     "[1] Andronikos Skiadopoulos, Dimitrios Lignos. Design summaries of steel moment resisting frames with elastic and dissipative panel zones. National Conference on Earthquake Engineering. Zenodo (2022). https://doi.org/10.5281/zenodo.5962407",
     "[2] Andronikos Skiadopoulos, Dimitrios Lignos. Seismic demands of steel moment resisting frames with inelastic beam‐to‐column web panel zones. Earthquake Engineering & Structural Dynamics 51.7 (2022): 1591-1609.",

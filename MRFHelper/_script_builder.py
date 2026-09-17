@@ -105,6 +105,39 @@ class ScriptBuilder:
             return
         self.eles_Id[element_id] = (i_node, j_node)
 
+    def joint2d(
+        self,
+        center_node: int,
+        bottom_node: int,
+        right_node: int,
+        top_node: int,
+        left_node: int,
+        c: str = "tab:purple",
+        element_id: int | None = None,
+    ) -> None:
+        """Draw a Joint2D as its physical rectangular panel."""
+        center_x, center_y = self.get_coord(center_node)
+        bottom_x, bottom_y = self.get_coord(bottom_node)
+        right_x, right_y = self.get_coord(right_node)
+        top_x, top_y = self.get_coord(top_node)
+        left_x, left_y = self.get_coord(left_node)
+        if not (
+            bottom_x == center_x == top_x
+            and left_y == center_y == right_y
+            and left_x < center_x < right_x
+            and bottom_y < center_y < top_y
+        ):
+            raise ValueError(f"Joint2D {element_id} external nodes do not form a valid panel")
+        x_values = [left_x, right_x, right_x, left_x, left_x]
+        y_values = [bottom_y, bottom_y, top_y, top_y, bottom_y]
+        self.ax.plot(x_values, y_values, color=c, lw=1.25, zorder=5)
+        if element_id is None:
+            return
+        if element_id in self.eles_Id:
+            warnings.warn(f"Element id {element_id} already exists", stacklevel=2)
+            return
+        self.eles_Id[element_id] = (bottom_node, right_node)
+
     def get_coord(self, node_id: int) -> tuple[float, float]:
         """Return the coordinate registered for a node tag."""
         node_id = int(node_id)

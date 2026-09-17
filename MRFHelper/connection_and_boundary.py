@@ -20,25 +20,6 @@ class ConnectionAndBoundary:
         self.soil_constraint = []
         self.rigid_diaphragm = True
 
-    @property
-    def rigid_disphragm(self) -> bool:
-        """Backward-compatible alias for the original misspelled attribute."""
-        return self.rigid_diaphragm
-
-    @rigid_disphragm.setter
-    def rigid_disphragm(self, value: bool) -> None:
-        validation.check_boolean(value, name="rigid_disphragm")
-        self.rigid_diaphragm = value
-
-    @property
-    def RBS_paras(self) -> tuple[float, float, float]:
-        """Backward-compatible alias for :attr:`rbs_parameters`."""
-        return self.rbs_parameters
-
-    @RBS_paras.setter
-    def RBS_paras(self, value: tuple[float, float, float]) -> None:
-        self.rbs_parameters = value
-
     def set_base_support(self, type: Literal["Fixed", "Pinned"] = "Fixed"):
         """Defined column base support
 

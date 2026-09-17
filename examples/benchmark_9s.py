@@ -1,6 +1,6 @@
 from pathlib import Path
-from MRFHelper import Frame
 
+from MRFHelper import Frame
 
 frame = Frame("Benchmark_9S")
 
@@ -61,44 +61,28 @@ frame.structural_components.set_column_splice(3, 5, 7, 9)
 frame.finish_structural_components()
 
 # Step-3, set load and material property
+floor_values = [483, 505, 495, 495, 495, 495, 495, 495, 495, 535]
+frame.load_and_material.set_masses(
+    moment_frame=[[value / 5] * 6 for value in floor_values],
+    leaning_column=[0] * 10,
+)
+frame.load_and_material.set_loads(
+    moment_frame=[[value / 5 * 1e4] * 6 for value in floor_values],
+    leaning_column=[0] * 10,
+)
 frame.load_and_material.set_material(206000, 248, 345)
 frame.finish_load_and_material()
 
 # Step-4, set connection and boundary condition
-# Loads and masses are temporarily not specified
 frame.connection_and_boundary.set_base_support("Pinned")
 frame.connection_and_boundary.set_beam_column_connection("Full")
 frame.connection_and_boundary.set_panel_zone_deformation(True)
-frame.connection_and_boundary.rigid_disphragm = True
+frame.connection_and_boundary.rigid_diaphragm = True
 frame.finish_connection_and_boundary()
 
 frame.recorders["BeamHinge"] = False
 frame.recorders["ColumnHinge"] = False
 frame.recorders["PanelZone"] = False
 frame.finalize()
-
-# Step-A, bacause none load was defined, additional cammands should added to directly define story mass and load
-#                             floor  [mass on each axis]
-frame.load_and_material.mass_node[2] = [483 / 5] * 6
-frame.load_and_material.mass_node[3] = [505 / 5] * 6
-frame.load_and_material.mass_node[4] = [495 / 5] * 6
-frame.load_and_material.mass_node[5] = [495 / 5] * 6
-frame.load_and_material.mass_node[6] = [495 / 5] * 6
-frame.load_and_material.mass_node[7] = [495 / 5] * 6
-frame.load_and_material.mass_node[8] = [495 / 5] * 6
-frame.load_and_material.mass_node[9] = [495 / 5] * 6
-frame.load_and_material.mass_node[10] = [495 / 5] * 6
-frame.load_and_material.mass_node[11] = [535 / 5] * 6
-#                          floor  [gravity load on each axis]
-frame.load_and_material.F_node[2] = [483 / 5 * 1e4] * 6
-frame.load_and_material.F_node[3] = [505 / 5 * 1e4] * 6
-frame.load_and_material.F_node[4] = [495 / 5 * 1e4] * 6
-frame.load_and_material.F_node[5] = [495 / 5 * 1e4] * 6
-frame.load_and_material.F_node[6] = [495 / 5 * 1e4] * 6
-frame.load_and_material.F_node[7] = [495 / 5 * 1e4] * 6
-frame.load_and_material.F_node[8] = [495 / 5 * 1e4] * 6
-frame.load_and_material.F_node[9] = [495 / 5 * 1e4] * 6
-frame.load_and_material.F_node[10] = [495 / 5 * 1e4] * 6
-frame.load_and_material.F_node[11] = [535 / 5 * 1e4] * 6
 
 frame.generate_scripts(Path(__file__).parent.parent / "output", show_plot=True)

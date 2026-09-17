@@ -1,6 +1,6 @@
 from pathlib import Path
-from MRFHelper import Frame
 
+from MRFHelper import Frame
 
 frame = Frame("Benchmark_3S")
 
@@ -25,27 +25,24 @@ frame.structural_components.set_columns(3, ["W14x257", "W14x311", "W14x311", "W1
 frame.finish_structural_components()
 
 # Step-3, set load and material property
+frame.load_and_material.set_masses(
+    moment_frame=[[479 / 5] * 5, [479 / 5] * 5, [520 / 5] * 5],
+    leaning_column=[0, 0, 0],
+)
+frame.load_and_material.set_loads(
+    moment_frame=[[479 / 5 * 1e4] * 5, [479 / 5 * 1e4] * 5, [520 / 5 * 1e4] * 5],
+    leaning_column=[0, 0, 0],
+)
 frame.load_and_material.set_material(206000, 248, 345)
 frame.finish_load_and_material()
 
 # Step-4, set connection and boundary condition
-# Loads and masses are temporarily not specified
 frame.connection_and_boundary.set_base_support("Fixed")
 frame.connection_and_boundary.set_beam_column_connection("Full")
 frame.connection_and_boundary.set_panel_zone_deformation(True)
-frame.connection_and_boundary.rigid_disphragm = True
+frame.connection_and_boundary.rigid_diaphragm = True
 frame.finish_connection_and_boundary()
 
 frame.finalize()
-
-# Step-A, bacause none load was defined, additional cammands should added to directly define story mass and load
-#                             floor  [mass on each axis]
-frame.load_and_material.mass_node[2] = [479 / 5] * 5
-frame.load_and_material.mass_node[3] = [479 / 5] * 5
-frame.load_and_material.mass_node[4] = [520 / 5] * 5
-#                          floor  [gravity load on each axis]
-frame.load_and_material.F_node[2] = [479 / 5 * 1e4] * 5
-frame.load_and_material.F_node[3] = [479 / 5 * 1e4] * 5
-frame.load_and_material.F_node[4] = [520 / 5 * 1e4] * 5
 
 frame.generate_scripts(Path(__file__).parent.parent / "output", show_plot=True)

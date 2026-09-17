@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mrfhelper"
-version = "2.6.0"
+version = "2.6"
 description = "Generate OpenSees models for moment-resisting frame analysis"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -18,8 +18,14 @@ dependencies = [
     "wsection",
 ]
 
+[project.optional-dependencies]
+test = ["openseespy", "pytest", "ruff"]
+
 [tool.setuptools.packages.find]
 include = ["MRFHelper*", "subroutines*"]
+
+[tool.setuptools.package-data]
+subroutines = ["*.tcl"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

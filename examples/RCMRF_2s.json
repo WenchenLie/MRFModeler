@@ -1,0 +1,56 @@
+{
+    "//": "All units are in 'N', 'mm', and 't'; RC strengths are expected values",
+    "frame_type": "reinforced_concrete",
+    "name": "RC_2S2B",
+    "notes": "Two-story RC frame loaded from JSON",
+    "building_geometry": {
+        "story_height": [3600, 3300],
+        "bay_length": [6000, 6000],
+        "plane_dimensions": [12000, 6000],
+        "mf_number": 2,
+        "exterior_column_tributary_area": [3000, 3000],
+        "interior_column_tributary_area": [6000, 3000]
+    },
+    "structural_components": {
+        "section_csv": "RCMRF_2s_sections.csv",
+        "beams": {
+            "2": ["S250x500", "S250x500"],
+            "3": ["S250x500", "S250x500"]
+        },
+        "columns": {
+            "1": ["S350x350", "S350x350", "S350x350"],
+            "2": ["S300x300", "S300x300", "S300x300"]
+        }
+    },
+    "load_and_material": {
+        "nodal_mass": {
+            "moment_frame": [
+                [7.4847, 14.9694, 7.4847],
+                [6.9337, 13.8673, 6.9337]
+            ],
+            "leaning_column": [2.1122, 1.0102]
+        },
+        "nodal_vertical_load": {
+            "moment_frame": [
+                [73350, 146700, 73350],
+                [67950, 135900, 67950]
+            ],
+            "leaning_column": [20700, 9900]
+        },
+        "axial_load_ratio_amplification_factor": 1.25,
+        "material": {
+            "fc_expected": 40,
+            "ec": 30000,
+            "fy_expected": 460,
+            "es": 200000,
+            "poisson_ratio": 0.2
+        }
+    },
+    "connection_and_boundary": {
+        "base_support": "Fixed",
+        "soil_constraint": [],
+        "rigid_diaphragm": true,
+        "joint_panel_model": {"type": "Rigid", "stiffness_factor": 1000}
+    },
+    "references": null
+}

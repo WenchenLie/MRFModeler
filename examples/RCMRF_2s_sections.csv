@@ -1,0 +1,4 @@
+section_name,b,h,cover,top_corner,top_inner,bottom_corner,bottom_inner,side_each,stirrup,stirrup_spacing,bond_slip
+S250x500,250,500,25,2D20,,2D20,,,4D10,100,1
+S300x300,300,300,25,2D20,,2D20,,,4D10,100,1
+S350x350,350,350,25,2D20,,2D20,,,4D10,100,1

@@ -1,8 +1,4 @@
-"""Validation helpers used by the public configuration API.
-
-Legacy camelCase keyword arguments are accepted for compatibility with
-existing model-definition scripts.
-"""
+"""Validation helpers used by the public configuration API."""
 
 from __future__ import annotations
 
@@ -13,15 +9,6 @@ from typing import Any
 
 def _display_name(name: str) -> str:
     return f" `{name}`" if name else ""
-
-
-def _resolve_is_none(is_none: bool, legacy_keywords: dict) -> bool:
-    """Resolve the legacy ``isNone`` spelling and reject unknown keywords."""
-    is_none = legacy_keywords.pop("isNone", is_none)
-    if legacy_keywords:
-        names = ", ".join(sorted(legacy_keywords))
-        raise TypeError(f"Unexpected keyword argument(s): {names}")
-    return is_none
 
 
 def _skip_none(value: Any, *, is_none: bool, name: str) -> bool:
@@ -67,11 +54,8 @@ def _check_length(
         raise ValueError(f"The maximum length of the {kind}{label} should be {max_length}")
 
 
-def check_int(
-    value: int, min_max: list = None, pos=True, is_none=False, name="", **legacy_keywords
-):
+def check_int(value: int, min_max: list = None, pos=True, is_none=False, name=""):
     """Validate an integer and, optionally, its inclusive range."""
-    is_none = _resolve_is_none(is_none, legacy_keywords)
     if _skip_none(value, is_none=is_none, name=name):
         return
     if isinstance(value, bool) or not isinstance(value, int):
@@ -86,10 +70,8 @@ def check_int_float(
     pos=True,
     is_none=False,
     name="",
-    **legacy_keywords,
 ):
     """Validate a real number and, optionally, its inclusive range."""
-    is_none = _resolve_is_none(is_none, legacy_keywords)
     if _skip_none(value, is_none=is_none, name=name):
         return
     if isinstance(value, bool) or not isinstance(value, Real):
@@ -98,18 +80,16 @@ def check_int_float(
     _check_nonnegative(value, pos=pos, name=name)
 
 
-def check_boolean(value: bool, is_none=False, name="", **legacy_keywords):
+def check_boolean(value: bool, is_none=False, name=""):
     """Validate a Boolean value."""
-    is_none = _resolve_is_none(is_none, legacy_keywords)
     if _skip_none(value, is_none=is_none, name=name):
         return
     if not isinstance(value, bool):
         raise ValueError(f"Variable{_display_name(name)} should be of bool type")
 
 
-def check_string(value: str, options: list = None, is_none=False, name="", **legacy_keywords):
+def check_string(value: str, options: list = None, is_none=False, name=""):
     """Validate a string and, optionally, a set of accepted values."""
-    is_none = _resolve_is_none(is_none, legacy_keywords)
     if _skip_none(value, is_none=is_none, name=name):
         return
     if not isinstance(value, str):
@@ -135,10 +115,8 @@ def check_tuple(
     pos=True,
     is_none=False,
     name="",
-    **legacy_keywords,
 ):
     """Validate a tuple, its length, and optionally numeric item values."""
-    is_none = _resolve_is_none(is_none, legacy_keywords)
     if _skip_none(value, is_none=is_none, name=name):
         return
     if not isinstance(value, tuple):
@@ -162,10 +140,8 @@ def check_list(
     pos=True,
     is_none=False,
     name="",
-    **legacy_keywords,
 ):
     """Validate a list, its length, and optionally numeric item values."""
-    is_none = _resolve_is_none(is_none, legacy_keywords)
     if _skip_none(value, is_none=is_none, name=name):
         return
     if not isinstance(value, list):
@@ -181,9 +157,8 @@ def check_list(
     _check_sequence_values(value, pos=pos, name=name)
 
 
-def check_dict(value: dict, is_none=False, name="", **legacy_keywords):
+def check_dict(value: dict, is_none=False, name=""):
     """Validate a dictionary."""
-    is_none = _resolve_is_none(is_none, legacy_keywords)
     if _skip_none(value, is_none=is_none, name=name):
         return
     if not isinstance(value, dict):

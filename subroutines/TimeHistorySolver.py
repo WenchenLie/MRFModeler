@@ -41,7 +41,7 @@ def TimeHistorySolver(
     algorithms = [("KrylovNewton",), ("NewtonLineSearch",), ("Newton",), ("SecantNewton",)]
     algorithm_id = 0
     ops.wipeAnalysis()
-    ops.constraints("Plain")
+    ops.constraints("Transformation")
     ops.numberer("RCM")
     ops.system("UmfPack")
     ops.test("EnergyIncr", 1.0e-3, 100)

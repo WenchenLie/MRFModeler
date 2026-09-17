@@ -6,8 +6,7 @@ Command = dict[Literal["node", "ele", "mat", "any"], str]
 
 
 class UserCommand:
-    buildin_mat = [9, 99]  # Original public attribute retained for compatibility.
-    built_in_material_tags = buildin_mat
+    built_in_material_tags = [9, 99]
 
     def __init__(self) -> None:
         self.additional_commands_py: list[Command] = []
@@ -21,18 +20,11 @@ class UserCommand:
         )
         return tcl_parameters, python_parameters
 
-    @staticmethod
-    def _reject_unknown_keywords(keywords: dict) -> None:
-        if keywords:
-            names = ", ".join(sorted(keywords))
-            raise TypeError(f"Unexpected keyword argument(s): {names}")
-
     def add_material(
         self,
         mat_type: str | None = None,
         material_id: int | None = None,
         *parameters,
-        **legacy_keywords,
     ):
         """Add material
 
@@ -41,9 +33,6 @@ class UserCommand:
             material_id (int): Material tag
             parameters (tuple[any]): Material parameters
         """
-        mat_type = legacy_keywords.pop("matType", mat_type)
-        material_id = legacy_keywords.pop("Id", material_id)
-        self._reject_unknown_keywords(legacy_keywords)
         validation.check_int(material_id, [1, 10000], name="material_id")
         validation.check_string(mat_type, name="mat_type")
         if material_id in self.built_in_material_tags:
@@ -61,7 +50,6 @@ class UserCommand:
         node_id: int | None = None,
         x: int | float | None = None,
         y: int | float | None = None,
-        **legacy_keywords,
     ):
         """Add node
 
@@ -70,8 +58,6 @@ class UserCommand:
             x (int | float): x coordinate
             y (int | float): y coordinate
         """
-        node_id = legacy_keywords.pop("Id", node_id)
-        self._reject_unknown_keywords(legacy_keywords)
         validation.check_int(node_id, [1, 10000], name="node_id")
         validation.check_int_float(x, pos=False, name="x")
         validation.check_int_float(y, pos=False, name="y")
@@ -87,7 +73,6 @@ class UserCommand:
         i_node: int | None = None,
         j_node: int | None = None,
         *parameters,
-        **legacy_keywords,
     ):
         """Add element
 
@@ -96,11 +81,6 @@ class UserCommand:
             element_id (int): Element tag
             parameters (tuple[any]): Element parameters
         """
-        element_type = legacy_keywords.pop("eleType", element_type)
-        element_id = legacy_keywords.pop("Id", element_id)
-        i_node = legacy_keywords.pop("inode", i_node)
-        j_node = legacy_keywords.pop("jnode", j_node)
-        self._reject_unknown_keywords(legacy_keywords)
         validation.check_string(element_type, name="element_type")
         validation.check_int(element_id, [1, 10000], name="element_id")
         validation.check_int(i_node, name="i_node")

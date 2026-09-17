@@ -92,24 +92,6 @@ class StructuralComponents:
         validation.check_list(thicknesses, length=self.axis, name="doubler plate thickness")
         self.doubler_plate[floor] = list(thicknesses)
 
-    @property
-    def RBS_length_all(self):
-        """Backward-compatible alias for :attr:`rbs_length_all`."""
-        return self.rbs_length_all
-
-    @RBS_length_all.setter
-    def RBS_length_all(self, value) -> None:
-        self.rbs_length_all = value
-
-    @property
-    def RBS_length(self):
-        """Backward-compatible alias for :attr:`rbs_length`."""
-        return self.rbs_length
-
-    @RBS_length.setter
-    def RBS_length(self, value) -> None:
-        self.rbs_length = value
-
     def set_rbs_length(self, rbs_length: int | float):
         """(Optional) Set RBS length (distance from beam hinge to panel zone edge)
 
@@ -118,14 +100,6 @@ class StructuralComponents:
         """
         validation.check_int_float(rbs_length, name="rbs_length")
         self.rbs_length_all = rbs_length
-
-    def set_RBS_length(self, rbs_length: int | float | None = None, **legacy_keywords):
-        """Backward-compatible alias for :meth:`set_rbs_length`."""
-        rbs_length = legacy_keywords.pop("RBS_length", rbs_length)
-        if legacy_keywords:
-            names = ", ".join(sorted(legacy_keywords))
-            raise TypeError(f"Unexpected keyword argument(s): {names}")
-        self.set_rbs_length(rbs_length)
 
     @staticmethod
     def _validate_complete_definition(

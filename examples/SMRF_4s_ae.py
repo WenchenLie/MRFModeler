@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from MRFHelper import Frame
 
 frame = Frame("MRF_4S_AE")
@@ -33,30 +34,36 @@ frame.structural_components.set_column_splice(
 )  # Floor numbers where the column splices are located
 frame.finish_structural_components()
 
-# Step-3, set load and material property
-# ([numbers of floor or story], [load values])
-frame.load_and_material.set_dead_load([2, 3, 4, 5], [4.3e-3, 4.3e-3, 4.3e-3, 4.3e-3])
-frame.load_and_material.set_live_load([2, 3, 4, 5], [2.4e-3, 2.4e-3, 2.4e-3, 0.96e-3])
-frame.load_and_material.set_cladding_load([1, 2, 3, 4], [1.2e-3, 1.2e-3, 1.2e-3, 1.2e-3])
-# ({load type: combination coefficient})
-frame.load_and_material.set_weight_combination_coefficients(
-    {"Dead": 1.05, "Live": 0.25, "Cladding": 1.05}
+# Step-3, set nodal mass, vertical load, and material properties
+frame_mass = [
+    [16.8948, 11.2632, 11.2632, 16.8948],
+    [16.7268, 11.1512, 11.1512, 16.7268],
+    [16.7268, 11.1512, 11.1512, 16.7268],
+    [14.4859, 9.6573, 9.6573, 14.4859],
+]
+frame_vertical_load = [
+    [190592.2125, 127061.475, 127061.475, 190592.2125],
+    [188862.8625, 125908.575, 125908.575, 188862.8625],
+    [188862.8625, 125908.575, 125908.575, 188862.8625],
+    [155758.1625, 103838.775, 103838.775, 155758.1625],
+]
+frame.load_and_material.set_masses(frame_mass, [266.6011, 265.8168, 265.8168, 255.3597])
+frame.load_and_material.set_loads(
+    frame_vertical_load, [3078215.55, 3070145.25, 3070145.25, 2761607.25]
 )
-frame.load_and_material.set_mass_combination_coefficients({"Dead": 1, "Live": 0, "Cladding": 1})
 frame.load_and_material.set_material(206000, 345, 345)
 frame.finish_load_and_material()
 
 # Step-4, set connection and boundary condition
-# Loads and masses are temporarily not specified
 frame.connection_and_boundary.set_base_support("Fixed")
 frame.connection_and_boundary.set_beam_column_connection("RBS")
 frame.connection_and_boundary.set_panel_zone_deformation(True)
-frame.connection_and_boundary.rigid_disphragm = True
+frame.connection_and_boundary.rigid_diaphragm = True
 frame.finish_connection_and_boundary()
 
 
 frame.finalize()
-frame.dict_info["References"] = [
+frame.dict_info["references"] = [
     "Archetype 4-story steel moment resisting frame",
     "[1] Ahmed Elkady, Dimitrios Lignos. Modeling of the composite action in fully restrained beam-to-column connections: implications in the seismic design and collapse capacity of steel special moment frames. Earthquake Engineering & Structural Dynamics 43.13 (2014): 1935-1954",
     "[2] Ahmed Elkady, Dimitrios Lignos. Effect of gravity framing on the overstrength and collapse capacity of steel frame buildings with perimeter special moment frames. Earthquake Engineering & Structural Dynamics 44.8 (2015): 1289-1307.",

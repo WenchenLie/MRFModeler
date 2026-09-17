@@ -1,0 +1,5 @@
+section_name,b,h,cover,top_corner,top_inner,bottom_corner,bottom_inner,side_each,stirrup,stirrup_spacing,bond_slip
+col1-3,600,600,30,2D24,4D24,2D24,4D24,4D24,4D10,100,1
+col4-6,550,550,30,2D24,3D24,2D24,3D24,3D24,4D10,100,1
+beam_out,250,550,30,2D24,1D24,2D24,1D24,,4D10,100,1
+beam_in,240,400,30,2D24,,2D24,,,4D10,100,1

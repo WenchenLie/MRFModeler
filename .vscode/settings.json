@@ -1,4 +1,8 @@
 {
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+    "isort.interpreter": [
+        "${workspaceFolder}/.venv/Scripts/python.exe"
+    ],
     "code-runner.executorMap": {
         "python": ".venv/Scripts/python.exe -u"
     }

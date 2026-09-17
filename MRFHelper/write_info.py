@@ -19,61 +19,78 @@ def write_info_to_dict(frame: Frame) -> dict:
         "//": "All units are in 'N', 'mm', and 't'",
         "name": frame.frame_name,
         "notes": frame.notes,
-        "BuildingGeometry": {},
-        "StructuralComponents": {},
-        "LoadAndMaterial": {},
-        "ConnectionAndBoundary": {},
+        "building_geometry": {},
+        "structural_components": {},
+        "load_and_material": {},
+        "connection_and_boundary": {},
     }
-    info["BuildingGeometry"] = {
+    info["building_geometry"] = {
         "//": "Step 1",
         "story_height": frame.building_geometry.story_height,
         "bay_length": frame.building_geometry.bay_length,
         "plane_dimensions": frame.building_geometry.plane_dimensions,
-        "MF_number": frame.building_geometry.mf_number,
+        "mf_number": frame.building_geometry.mf_number,
         "exterior_column_tributary_area": frame.building_geometry.exterior_column_tributary_area,
         "interior_column_tributary_area": frame.building_geometry.interior_column_tributary_area,
     }
-    info["StructuralComponents"] = {
+    info["structural_components"] = {
         "//": "Step 2",
         "beams": frame.structural_components.beams,
         "columns": frame.structural_components.columns,
-        "set_doubler_plate": frame.structural_components.doubler_plate,
+        "doubler_plate": frame.structural_components.doubler_plate,
         "column_splice": frame.structural_components.column_splice,
         "//column_splice": "The story number where column splices locate",
         "beam_splice": frame.structural_components.beam_splice,
         "//beam_splice": "The bay number where beam splices locate",
-        "RBS_length": frame.structural_components.rbs_length_all,
-        "//RBS_length": "Fix the distance from beam hinge to panel zone edge (optional)",
+        "rbs_length": frame.structural_components.rbs_length_all,
+        "//rbs_length": "Fix the distance from beam hinge to panel zone edge (optional)",
     }
-    info["LoadAndMaterial"] = {
+    info["load_and_material"] = {
         "//": "Step 3",
-        "//rule": "floor/story number: load",
-        "dead_load": frame.load_and_material.dead_load,
-        "live_load": frame.load_and_material.live_load,
-        "clading_load": frame.load_and_material.cladding_load,
-        "weight_combination_coefficients": frame.load_and_material.cc_weight,
-        "mass_combination_coefficients": frame.load_and_material.cc_mass,
+        "nodal_mass": {
+            "moment_frame": [
+                frame.load_and_material.moment_frame_node_mass[floor]
+                for floor in range(2, frame.N + 2)
+            ],
+            "leaning_column": [
+                frame.load_and_material.leaning_column_node_mass[floor]
+                for floor in range(2, frame.N + 2)
+            ],
+        },
+        "nodal_vertical_load": {
+            "moment_frame": [
+                frame.load_and_material.moment_frame_node_vertical_load[floor]
+                for floor in range(2, frame.N + 2)
+            ],
+            "leaning_column": [
+                frame.load_and_material.leaning_column_node_vertical_load[floor]
+                for floor in range(2, frame.N + 2)
+            ],
+        },
+        "axial_load_ratio_amplification_factor": (
+            frame.load_and_material.axial_load_ratio_amplification_factor
+        ),
         "material": {
-            "E": frame.load_and_material.elastic_modulus,
+            "elastic_modulus": frame.load_and_material.elastic_modulus,
             "fy_beam": frame.load_and_material.fy_beam,
             "fy_column": frame.load_and_material.fy_column,
-            "miu": frame.load_and_material.miu,
+            "poisson_ratio": frame.load_and_material.poisson_ratio,
         },
     }
-    info["ConnectionAndBoundary"] = {
+    info["connection_and_boundary"] = {
         "//": "Step 4",
         "base_support": frame.connection_and_boundary.base_support,
         "//base_support": "Fixed or Pinned",
         "beam_column_connection": frame.connection_and_boundary.beam_column_connection,
         "//beam_column_connection": "Full, RBS, or Hinged",
-        "RBS_parameters": frame.connection_and_boundary.rbs_parameters,
+        "rbs_parameters": frame.connection_and_boundary.rbs_parameters,
         "panel_zone_deformation": frame.connection_and_boundary.panel_zone_deformation,
         "//panel_zone_deformation": "true or false",
         "soil_constraint": frame.connection_and_boundary.soil_constraint,
         "//soil_constraint": "Set soil constraint at specified floor (optional)",
         "rigid_diaphragm": frame.connection_and_boundary.rigid_diaphragm,
     }
-    info["References"] = None
+    info["references"] = None
     return info
 
 
@@ -151,28 +168,34 @@ def write_info_to_tcl(frame: Frame, file_name="Model Information") -> str:
     text += f"\tYoung's modulus [MPa]: {loads.elastic_modulus}\n"
     text += f"\tNominal yield strength of beams [MPa]: {loads.fy_beam}\n"
     text += f"\tNominal yield strength of columns [MPa]: {loads.fy_column}\n"
-    text += f"\tPossion ratio: {loads.miu}\n\n"
-    text += "Load [MPa]:\n"
-    story_floor = [f"{i - 1}/{i}" for i in range(2, frame.N + 2)]
-    df = pd.DataFrame(story_floor, columns=["Story/Floor"])
-    dead_loads, live_loads, cladding_loads = [], [], []
-    for floor in range(2, frame.N + 2):
-        story = floor - 1
-        dead_loads.append(loads.dead_load[floor])
-        live_loads.append(loads.live_load[floor])
-        cladding_loads.append(loads.cladding_load[story])
-    df["Dead"] = dead_loads
-    df["Live"] = live_loads
-    df["Cladding"] = cladding_loads
+    text += f"\tPoisson ratio: {loads.poisson_ratio}\n\n"
+    text += (
+        "Column axial-load-ratio amplification factor: "
+        f"{loads.axial_load_ratio_amplification_factor}\n\n"
+    )
+    axis_columns = [f"Axis-{axis}" for axis in range(1, frame.axis + 1)]
+    text += "User-defined moment-frame nodal mass [t]:\n"
+    df = pd.DataFrame.from_dict(loads.moment_frame_node_mass, orient="index", columns=axis_columns)
+    df.insert(0, "Floor", list(loads.moment_frame_node_mass))
     text += f"{df.to_string(index=False)}\n\n"
-    text += "Load and mass combination coefficients:\n"
-    df = pd.DataFrame()
-    df["Dead"] = [loads.cc_weight["Dead"], loads.cc_mass["Dead"]]
-    df["Live"] = [loads.cc_weight["Live"], loads.cc_mass["Live"]]
-    df["Cladding"] = [loads.cc_weight["Cladding"], loads.cc_mass["Cladding"]]
-    df.index = ["Weight", "Mass"]
-    text += f"{df.to_string()}\n\n"
-    text += "Axial compressive ratio of columns:\n"
+    text += "User-defined leaning-column nodal mass [t]:\n"
+    df = pd.DataFrame(sorted(loads.leaning_column_node_mass.items()), columns=["Floor", "Mass"])
+    text += f"{df.to_string(index=False)}\n\n"
+    text += "User-defined moment-frame nodal vertical load [kN, downward positive]:\n"
+    df = pd.DataFrame.from_dict(
+        loads.moment_frame_node_vertical_load, orient="index", columns=axis_columns
+    )
+    df[axis_columns] /= 1000.0
+    df.insert(0, "Floor", list(loads.moment_frame_node_vertical_load))
+    text += f"{df.to_string(index=False)}\n\n"
+    text += "User-defined leaning-column nodal vertical load [kN, downward positive]:\n"
+    df = pd.DataFrame(
+        sorted(loads.leaning_column_node_vertical_load.items()),
+        columns=["Floor", "Vertical load"],
+    )
+    df["Vertical load"] /= 1000.0
+    text += f"{df.to_string(index=False)}\n\n"
+    text += "Unamplified axial compressive ratio of columns:\n"
     df = pd.DataFrame.from_dict(
         loads.ppy,
         orient="index",
@@ -184,16 +207,14 @@ def write_info_to_tcl(frame: Frame, file_name="Model Information") -> str:
         df_col.append(f"{i}t")
     df.insert(0, "Story", df_col)
     text += f"{df.to_string(index=False)}\n\n"
-    total_weight, total_mass = 0, 0
-    for floor in range(2, frame.N + 2):
-        for axis in range(1, frame.axis + 1):
-            id_axis = axis - 1
-            total_weight += loads.F_node[floor][id_axis]
-            total_mass += loads.mass_node[floor][id_axis]
-        total_weight += loads.F_grav[floor]
-        total_mass += loads.mass_grav[floor]
-    text += f"Seiemic weight of considered 2D frame: {total_weight / 1000:.2f} kN\n"
-    text += f"Seiemic mass of considered 2D frame: {total_mass:.2f} t\n\n\n"
+    total_vertical_load = sum(
+        sum(values) for values in loads.moment_frame_node_vertical_load.values()
+    ) + sum(loads.leaning_column_node_vertical_load.values())
+    total_mass = sum(sum(values) for values in loads.moment_frame_node_mass.values()) + sum(
+        loads.leaning_column_node_mass.values()
+    )
+    text += f"Total user-defined vertical load: {total_vertical_load / 1000:.2f} kN\n"
+    text += f"Total user-defined mass: {total_mass:.2f} t\n\n\n"
 
     # 4 Connection and boundary condition
     text += "-" * 15 + " 4. Connection and Boundary Condition " + "-" * 15 + "\n\n"

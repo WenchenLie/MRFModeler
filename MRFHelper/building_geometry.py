@@ -21,15 +21,6 @@ class BuildingGeometry:
         self.interior_column_tributary_area = None
         self.mf_number = None
 
-    @property
-    def MF_number(self):
-        """Backward-compatible alias for :attr:`mf_number`."""
-        return self.mf_number
-
-    @MF_number.setter
-    def MF_number(self, value) -> None:
-        self.mf_number = value
-
     def _check(self):
         validation.check_list(self.story_height, min_length=1, max_length=98, name="story_height")
         validation.check_list(self.bay_length, min_length=1, max_length=98, name="bay_length")

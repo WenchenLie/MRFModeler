@@ -18,6 +18,22 @@ Writen by: Wenchen Lie
 """
 
 
+def _plain_number(value: int | float) -> str:
+    """Format a physical model parameter without exponential notation."""
+    magnitude = abs(float(value))
+    if magnitude >= 1.0e6:
+        decimal_places = 3
+    elif magnitude >= 1.0:
+        decimal_places = 9
+    else:
+        decimal_places = 12
+    text = f"{float(value):.{decimal_places}f}".rstrip("0").rstrip(".")
+    text = "0" if text in {"", "-0"} else text
+    if isinstance(value, float) and "." not in text:
+        text += ".0"
+    return text
+
+
 class ScriptWriter(ScriptBuilder):
     """Build and persist matching Tcl and OpenSeesPy model scripts."""
 
@@ -26,6 +42,8 @@ class ScriptWriter(ScriptBuilder):
         self.overwrite = overwrite
         self.show_plot = show_plot
         self.line_frag = dict()
+        if not show_plot:
+            plt.switch_backend("Agg")
         self.fig, self.ax = plt.subplots()
         super().__init__(self.ax)
         self.generated_files: dict[str, Path] = {}
@@ -169,8 +187,8 @@ class ScriptWriter(ScriptBuilder):
         self.writepy(f"NBay = {frame.bays}")
         self.write(f"set E {frame.load_and_material.elastic_modulus:.2f};")
         self.writepy(f"E = {frame.load_and_material.elastic_modulus:.2f}")
-        self.write(f"set mu {frame.load_and_material.miu};")
-        self.writepy(f"mu = {frame.load_and_material.miu}")
+        self.write(f"set mu {frame.load_and_material.poisson_ratio};")
+        self.writepy(f"mu = {frame.load_and_material.poisson_ratio}")
         self.write(f"set fy_beam {frame.load_and_material.fy_beam:.2f};")
         self.writepy(f"fy_beam = {frame.load_and_material.fy_beam:.2f}")
         self.write(f"set fy_column {frame.load_and_material.fy_column:.2f};")
@@ -778,7 +796,7 @@ class ScriptWriter(ScriptBuilder):
             for bay in range(1, frame.bays + 1):
                 axis_left, axis_right = bay, bay + 1
                 story_bottom, story_top = floor - 1, floor
-                Ix = frame.structural_components.beam_properties[floor][bay - 1][6]
+                ix = frame.structural_components.beam_properties[floor][bay - 1][6]
                 d = frame.structural_components.beam_properties[floor][bay - 1][1]
                 tw = frame.structural_components.beam_properties[floor][bay - 1][2]
                 h = frame.structural_components.beam_properties[floor][bay - 1][8]
@@ -822,10 +840,10 @@ class ScriptWriter(ScriptBuilder):
                     inode = inode1
                 jnode = self.get_id(10, floor, axis_left, 4)
                 write_temp.append(
-                    f"BeamHinge {tag} {inode} {jnode} $E $fy_beam {Ix:.2f} {d:.2f} {htw:.2f} {bftf:.2f} {ry:.2f} {length:.1f} {shear_length:.1f} {unbraced_length:.1f} {yield_moment:.2f} {type_};"
+                    f"BeamHinge {tag} {inode} {jnode} $E $fy_beam {ix:.2f} {d:.2f} {htw:.2f} {bftf:.2f} {ry:.2f} {length:.1f} {shear_length:.1f} {unbraced_length:.1f} {yield_moment:.2f} {type_};"
                 )
                 write_temp_py.append(
-                    f"BeamHinge({tag}, {inode}, {jnode}, E, fy_beam, {Ix:.2f}, {d:.2f}, {htw:.2f}, {bftf:.2f}, {ry:.2f}, {length:.1f}, {shear_length:.1f}, {unbraced_length:.1f}, {yield_moment:.2f}, {type_})"
+                    f"BeamHinge({tag}, {inode}, {jnode}, E, fy_beam, {ix:.2f}, {d:.2f}, {htw:.2f}, {bftf:.2f}, {ry:.2f}, {length:.1f}, {shear_length:.1f}, {unbraced_length:.1f}, {yield_moment:.2f}, {type_})"
                 )
                 self.zero_length(inode, jnode, element_id=tag)
                 # right hinge
@@ -840,10 +858,10 @@ class ScriptWriter(ScriptBuilder):
                     # Other than RBS
                     jnode = jnode2
                 write_temp.append(
-                    f"BeamHinge {tag} {inode} {jnode} $E $fy_beam {Ix:.2f} {d:.2f} {htw:.2f} {bftf:.2f} {ry:.2f} {length:.1f} {shear_length:.1f} {unbraced_length:.1f} {yield_moment:.2f} {type_};"
+                    f"BeamHinge {tag} {inode} {jnode} $E $fy_beam {ix:.2f} {d:.2f} {htw:.2f} {bftf:.2f} {ry:.2f} {length:.1f} {shear_length:.1f} {unbraced_length:.1f} {yield_moment:.2f} {type_};"
                 )
                 write_temp_py.append(
-                    f"BeamHinge({tag}, {inode}, {jnode}, E, fy_beam, {Ix:.2f}, {d:.2f}, {htw:.2f}, {bftf:.2f}, {ry:.2f}, {length:.1f}, {shear_length:.1f}, {unbraced_length:.1f}, {yield_moment:.2f}, {type_})"
+                    f"BeamHinge({tag}, {inode}, {jnode}, E, fy_beam, {ix:.2f}, {d:.2f}, {htw:.2f}, {bftf:.2f}, {ry:.2f}, {length:.1f}, {shear_length:.1f}, {unbraced_length:.1f}, {yield_moment:.2f}, {type_})"
                 )
                 self.zero_length(inode, jnode, element_id=tag)
             self.write(*write_temp)
@@ -938,7 +956,7 @@ class ScriptWriter(ScriptBuilder):
                     ][7]
                 axial_load_ratio_bottom = frame.load_and_material.ppy[f"{story}b"][axis - 1]
                 axial_load_ratio_top = frame.load_and_material.ppy[f"{story}t"][axis - 1]
-                axial_load_scale = frame.load_and_material.ppy_scale
+                axial_load_scale = frame.load_and_material.axial_load_ratio_amplification_factor
                 bottom_tag = self.get_id(10, floor_bottom, axis, 7)
                 top_tag = self.get_id(10, floor_top, axis, 8)
                 if story == 1:
@@ -1096,7 +1114,7 @@ class ScriptWriter(ScriptBuilder):
                 write_temp.append(f"equalDOF {inode} {jnode} 1;")
                 write_temp_py.append(f"ops.equalDOF({inode}, {jnode}, 1)")
             self.control_nodes.append(inode)
-            if frame.connection_and_boundary.rigid_disphragm:
+            if frame.connection_and_boundary.rigid_diaphragm:
                 self.write(*write_temp)
                 self.writepy(*write_temp_py)
         self.write()
@@ -1336,9 +1354,10 @@ class ScriptWriter(ScriptBuilder):
                     tag = self.get_id(11, floor, axis, 4)
                 else:
                     tag = self.get_id(11, floor, axis, 0)
-                mass = frame.load_and_material.mass_node[floor][axis - 1]
-                write_temp.append(f"mass {tag} {mass:.3f} 1.e-9 1.e-9;")
-                write_temp_py.append(f"ops.mass({tag}, {mass:.3f}, 1.e-9, 1.e-9)")
+                mass = frame.load_and_material.moment_frame_node_mass[floor][axis - 1]
+                mass_text = _plain_number(mass)
+                write_temp.append(f"mass {tag} {mass_text} 1.e-9 1.e-9;")
+                write_temp_py.append(f"ops.mass({tag}, {mass_text}, 1.e-9, 1.e-9)")
             self.write(*write_temp)
             self.writepy(*write_temp_py)
         self.write()
@@ -1348,9 +1367,10 @@ class ScriptWriter(ScriptBuilder):
         for floor in range(2, frame.N + 2):
             axis = frame.axis + 1
             tag = self.get_id(10, floor, axis, 0)
-            mass = frame.load_and_material.mass_grav[floor]
-            self.write(f"mass {tag} {mass:.3f} 1.e-9 1.e-9;")
-            self.writepy(f"ops.mass({tag}, {mass:.3f}, 1.e-9, 1.e-9)")
+            mass = frame.load_and_material.leaning_column_node_mass[floor]
+            mass_text = _plain_number(mass)
+            self.write(f"mass {tag} {mass_text} 1.e-9 1.e-9;")
+            self.writepy(f"ops.mass({tag}, {mass_text}, 1.e-9, 1.e-9)")
         self.write()
         self.writepy()
         self.write()
@@ -1490,10 +1510,11 @@ class ScriptWriter(ScriptBuilder):
             write_temp = []
             write_temp_py = []
             for axis in range(1, frame.axis + 1):
-                load = -frame.load_and_material.F_node[floor][axis - 1]
+                load = -frame.load_and_material.moment_frame_node_vertical_load[floor][axis - 1]
                 tag = self.get_id(11, floor, axis, 1)
-                write_temp.append(f"    load {tag} 0. {load:.1f} 0.;")
-                write_temp_py.append(f"ops.load({tag}, 0., {load:.1f}, 0.)")
+                load_text = _plain_number(load)
+                write_temp.append(f"    load {tag} 0. {load_text} 0.;")
+                write_temp_py.append(f"ops.load({tag}, 0., {load_text}, 0.)")
             self.write(*write_temp)
             self.writepy(*write_temp_py)
         self.write()
@@ -1501,19 +1522,20 @@ class ScriptWriter(ScriptBuilder):
         self.write("    # gravity frame loads")
         self.writepy("# gravity frame loads")
         for floor in range(2, frame.N + 2):
-            load = -frame.load_and_material.F_grav[floor]
+            load = -frame.load_and_material.leaning_column_node_vertical_load[floor]
             axis = frame.axis + 1
             tag = self.get_id(10, floor, axis, 0)
-            self.write(f"    load {tag} 0. {load:.1f} 0.;")
-            self.writepy(f"ops.load({tag}, 0., {load:.1f}, 0.)")
+            load_text = _plain_number(load)
+            self.write(f"    load {tag} 0. {load_text} 0.;")
+            self.writepy(f"ops.load({tag}, 0., {load_text}, 0.)")
         self.write()
         self.writepy()
         self.write("}")
         self.write()
         self.write("wipeAnalysis")
         self.writepy("ops.wipeAnalysis()")
-        self.write("constraints Plain;")
-        self.writepy('ops.constraints("Plain")')
+        self.write("constraints Transformation;")
+        self.writepy('ops.constraints("Transformation")')
         self.write("numberer RCM;")
         self.writepy('ops.numberer("RCM")')
         self.write("system BandGeneral;")
@@ -1526,8 +1548,21 @@ class ScriptWriter(ScriptBuilder):
         self.writepy('ops.integrator("LoadControl", 0.1)')
         self.write("analysis Static;")
         self.writepy('ops.analysis("Static")')
-        self.write("analyze 10;")
-        self.writepy("ops.analyze(10)")
+        self.write("set gravityStatus [analyze 10];")
+        self.writepy("gravity_status = ops.analyze(10)")
+        self.write("if {$gravityStatus != 0} {")
+        self.writepy("if gravity_status != 0:")
+        self.write(
+            '    puts "WARNING: Static gravity analysis did not converge '
+            "(OpenSees code: $gravityStatus, committed load factor: [getTime]). "
+            'Continuing with the last committed state.";'
+        )
+        self.writepy(
+            '    print(f"WARNING: Static gravity analysis did not converge '
+            "(OpenSees code: {gravity_status}, committed load factor: {ops.getTime()}). "
+            'Continuing with the last committed state.")'
+        )
+        self.write("}")
         self.write("loadConst -time 0.0;")
         self.writepy('ops.loadConst("-time", 0.0)')
         self.write()
@@ -1669,10 +1704,11 @@ class ScriptWriter(ScriptBuilder):
         self.writepy('elif analysis_type == "PO":')
         self.write()
         for floor in range(2, frame.N + 2):
-            mass = sum(frame.load_and_material.mass_node[floor])
-            mass += frame.load_and_material.mass_grav[floor]
-            self.write(f"    set m{floor} {mass:.3f};")
-            self.writepy(f"    m{floor} = {mass:.3f}")
+            mass = sum(frame.load_and_material.moment_frame_node_mass[floor])
+            mass += frame.load_and_material.leaning_column_node_mass[floor]
+            mass_text = _plain_number(mass)
+            self.write(f"    set m{floor} {mass_text};")
+            self.writepy(f"    m{floor} = {mass_text}")
         self.write()
         self.writepy()
         for floor in range(2, frame.N + 2):
@@ -1734,10 +1770,11 @@ class ScriptWriter(ScriptBuilder):
         self.write("    set RDR_path [list 0 0.02 -0.02 0];  # $$$")
         self.write()
         for floor in range(2, frame.N + 2):
-            mass = sum(frame.load_and_material.mass_node[floor])
-            mass += frame.load_and_material.mass_grav[floor]
-            self.write(f"    set m{floor} {mass:.3f};")
-            self.writepy(f"    m{floor} = {mass:.3f}")
+            mass = sum(frame.load_and_material.moment_frame_node_mass[floor])
+            mass += frame.load_and_material.leaning_column_node_mass[floor]
+            mass_text = _plain_number(mass)
+            self.write(f"    set m{floor} {mass_text};")
+            self.writepy(f"    m{floor} = {mass_text}")
         self.write()
         self.writepy()
         for floor in range(2, frame.N + 2):
@@ -1776,7 +1813,7 @@ class ScriptWriter(ScriptBuilder):
         self.writepy()
         self.writepy('else:\n        assert False, "Should not reach here"')
         self.writepy()
-        self.writepy('np.savetxt(MainFolder/SubFolder/"Status.dat", status, fmt="%d")')
+        self.writepy('np.savetxt(MainFolder/SubFolder/"Status.dat", [status], fmt="%d")')
         self.writepy("return result")
         self.write("}")
         self.write()
@@ -1890,6 +1927,7 @@ class ScriptWriter(ScriptBuilder):
             "python": output_path / f"{model_name}.py",
             "json": output_path / f"{model_name}.json",
             "image": output_path / f"{model_name}.png",
+            "html": output_path / f"{model_name}.html",
             "information": output_path / f"Model Information_{model_name}.txt",
         }
         conflicts = [path for path in paths.values() if path.exists()]
@@ -1906,6 +1944,9 @@ class ScriptWriter(ScriptBuilder):
         paths["python"].write_text(text_to_writepy, encoding="utf-8")
         with paths["json"].open("w", encoding="utf-8") as stream:
             json.dump(self.frame.dict_info, stream, indent=4, ensure_ascii=False)
+        from .model_report import write_model_report
+
+        write_model_report(self.frame, paths["html"])
         if self.Nrecorder < 512:
             print("\n----------------- Success -----------------------")
         else:
@@ -1927,7 +1968,3 @@ class ScriptWriter(ScriptBuilder):
             print(path.absolute())
         print("-------------------------------------------------\n")
         return paths
-
-
-# Backward-compatible class name used by releases through 2.5.
-WriteScript = ScriptWriter
