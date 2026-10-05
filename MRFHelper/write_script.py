@@ -292,29 +292,6 @@ class ScriptWriter(ScriptBuilder):
         self.write("")
         self.writepy("")
 
-        # Leaning column connected nodes
-        self.write("# Leaning column connected nodes")
-        self.writepy("# Leaning column connected nodes")
-        for floor in range(2, self.frame.N + 2):
-            axis = self.frame.axis + 1
-            x = x_axis[-1]
-            y = y_floor[floor - 1]
-            top_tag = self.get_id(10, floor, axis, 1)
-            bottom_tag = self.get_id(10, floor, axis, 2)
-            if floor != self.frame.N + 1:  # not top floor
-                self.write(f"node {bottom_tag} $Axis{axis} $Floor{floor};")
-                self.writepy(f"ops.node({bottom_tag}, Axis{axis}, Floor{floor})")
-                self.write(f"node {top_tag} $Axis{axis} $Floor{floor};")
-                self.writepy(f"ops.node({top_tag}, Axis{axis}, Floor{floor})")
-                self.node(x, y, node_id=bottom_tag)
-                self.node(x, y, node_id=top_tag)
-            else:  # top floor
-                self.write(f"node {bottom_tag} $Axis{axis} $Floor{floor};")
-                self.writepy(f"ops.node({bottom_tag}, Axis{axis}, Floor{floor})")
-                self.node(x, y, node_id=bottom_tag)
-        self.write("")
-        self.writepy("")
-
         # Moment frame column nodes
         self.write("# Moment frame column nodes")
         self.writepy("# Moment frame column nodes")
@@ -1011,37 +988,20 @@ class ScriptWriter(ScriptBuilder):
         for story in range(1, frame.N + 1):
             floor_bottom, floor_top = story, story + 1
             axis = frame.axis + 1
-            if story == 1:
-                inode = self.get_id(10, floor_bottom, axis, 0)
-            else:
-                inode = self.get_id(10, floor_bottom, axis, 1)
-            jnode = self.get_id(10, floor_top, axis, 2)
+            inode = self.get_id(10, floor_bottom, axis, 0)
+            jnode = self.get_id(10, floor_top, axis, 0)
             tag = self.get_id(10, story, axis, 1)
-            self.write(f"element elasticBeamColumn {tag} {inode} {jnode} $A_Stiff $E $I_Stiff 2;")
-            self.writepy(
-                f'ops.element("elasticBeamColumn", {tag}, {inode}, {jnode}, A_Stiff, E, I_Stiff, 2)'
-            )
+            if story == frame.N:
+                self.write(f"element elasticBeamColumn {tag} {inode} {jnode} $A_Stiff $E $I_Stiff 2;")
+                self.writepy(
+                    f'ops.element("elasticBeamColumn", {tag}, {inode}, {jnode}, A_Stiff, E, I_Stiff, 2)'
+                )
+            else:
+                self.write(f"element elasticBeamColumn {tag} {inode} {jnode} $A_Stiff $E $I_Stiff 2 -release 2;")
+                self.writepy(
+                    f'ops.element("elasticBeamColumn", {tag}, {inode}, {jnode}, A_Stiff, E, I_Stiff, 2, "-release", 2)'
+                )
             self.ele(inode, jnode, element_id=tag)
-        self.write()
-        self.writepy()
-
-        # Leaning column hinges
-        self.write("# Leaning column hinges")
-        self.writepy("# Leaning column hinges")
-        for floor in range(2, frame.N + 2):
-            axis = frame.axis + 1
-            inode = self.get_id(10, floor, axis, 2)
-            jnode = self.get_id(10, floor, axis, 0)
-            knode = self.get_id(10, floor, axis, 1)
-            primary_tag = self.get_id(10, floor, axis, 8)
-            secondary_tag = self.get_id(10, floor, axis, 7)
-            self.write(f"Spring_Rigid {primary_tag} {inode} {jnode};")
-            self.writepy(f"Spring_Rigid({primary_tag}, {inode}, {jnode})")
-            self.ele(inode, jnode, element_id=primary_tag)
-            if floor != frame.N + 1:
-                self.write(f"Spring_Zero {secondary_tag} {jnode} {knode};")
-                self.writepy(f"Spring_Zero({secondary_tag}, {jnode}, {knode})")
-                self.ele(jnode, knode, element_id=secondary_tag)
         self.write()
         self.writepy()
 
