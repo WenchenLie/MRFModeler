@@ -755,12 +755,18 @@ def test_generated_rc_scripts_and_opensas_contract(tmp_path: Path) -> None:
         frame.generate_scripts(tmp_path, overwrite=False)
 
 
-def test_generated_openseespy_model_smoke(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("stories", [1, 2])
+def test_generated_openseespy_model_smoke(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, stories: int
+) -> None:
     if importlib.util.find_spec("openseespy") is None:
         pytest.skip("Install the `test` extra to run the OpenSeesPy integration test")
 
     generated = tmp_path / "generated"
-    paths = build_rc_frame().generate_scripts(generated)
+    frame = (
+        build_rc_frame() if stories == 1 else from_json(PROJECT_ROOT / "examples" / "RCMRF_2s.json")
+    )
+    paths = frame.generate_scripts(generated)
     mirror = tmp_path / "python_mirror"
     subroutines = mirror / "subroutines"
     shutil.copytree(PROJECT_ROOT / "subroutines", subroutines)
@@ -792,14 +798,18 @@ def test_generated_openseespy_model_smoke(tmp_path: Path, monkeypatch: pytest.Mo
 
 
 @pytest.mark.parametrize("analysis_type", ["TH", "PO", "CP"])
-def test_opensees_351_rc_analysis_smoke(tmp_path: Path, analysis_type: str) -> None:
+@pytest.mark.parametrize("stories", [1, 2])
+def test_opensees_351_rc_analysis_smoke(tmp_path: Path, analysis_type: str, stories: int) -> None:
     opensas = Path("F:/Projects/OpenSAS")
     executable = opensas / "OS_terminal" / "OpenSees351.exe"
     if not executable.is_file():
         pytest.skip("OpenSAS OpenSees 3.5.1 is not available")
 
     output = tmp_path / "generated"
-    paths = build_rc_frame().generate_scripts(output)
+    frame = (
+        build_rc_frame() if stories == 1 else from_json(PROJECT_ROOT / "examples" / "RCMRF_2s.json")
+    )
+    paths = frame.generate_scripts(output)
     mirror = tmp_path / "OpenSAS_mirror"
     subroutines = mirror / "subroutines"
     shutil.copytree(opensas / "subroutines", subroutines)

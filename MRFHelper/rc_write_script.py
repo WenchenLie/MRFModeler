@@ -294,28 +294,20 @@ class RCScriptWriter(ScriptWriter):
         self.writepy("# Leaning column")
         for story in range(1, frame.N + 1):
             axis = frame.axis + 1
-            inode = self.get_id(10, story, axis, 0 if story == 1 else 1)
-            jnode = self.get_id(10, story + 1, axis, 2)
+            inode = self.get_id(10, story, axis, 0)
+            jnode = self.get_id(10, story + 1, axis, 0)
             tag = self.get_id(10, story, axis, 1)
-            self.write(f"element elasticBeamColumn {tag} {inode} {jnode} $A_Stiff $E $I_Stiff 2;")
+            release_tcl = " -release 2" if story < frame.N else ""
+            release_python = ', "-release", 2' if story < frame.N else ""
+            self.write(
+                f"element elasticBeamColumn {tag} {inode} {jnode} "
+                f"$A_Stiff $E $I_Stiff 2{release_tcl};"
+            )
             self.writepy(
-                f'ops.element("elasticBeamColumn", {tag}, {inode}, {jnode}, A_Stiff, E, I_Stiff, 2)'
+                f'ops.element("elasticBeamColumn", {tag}, {inode}, {jnode}, '
+                f"A_Stiff, E, I_Stiff, 2{release_python})"
             )
             self.ele(inode, jnode, element_id=tag)
-        for floor in range(2, frame.N + 2):
-            axis = frame.axis + 1
-            inode = self.get_id(10, floor, axis, 2)
-            center = self.get_id(10, floor, axis, 0)
-            top = self.get_id(10, floor, axis, 1)
-            primary_tag = self.get_id(10, floor, axis, 8)
-            secondary_tag = self.get_id(10, floor, axis, 7)
-            self.write(f"Spring_Rigid {primary_tag} {inode} {center};")
-            self.writepy(f"Spring_Rigid({primary_tag}, {inode}, {center})")
-            self.zero_length(inode, center, element_id=primary_tag)
-            if floor != frame.N + 1:
-                self.write(f"Spring_Zero {secondary_tag} {center} {top};")
-                self.writepy(f"Spring_Zero({secondary_tag}, {center}, {top})")
-                self.zero_length(center, top, element_id=secondary_tag)
         self.write()
         self.writepy()
 
