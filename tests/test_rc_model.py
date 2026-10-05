@@ -56,9 +56,9 @@ def build_rc_frame(
 
 
 def test_version_is_fixed_at_2_6_1() -> None:
-    assert __version__ == "2.6.1"
-    assert Frame.version == "2.6.1"
-    assert RCFrame.version == "2.6.1"
+    assert __version__ == "2.6.2"
+    assert Frame.version == "2.6.2"
+    assert RCFrame.version == "2.6.2"
 
 
 def test_bar_groups_and_section_geometry() -> None:

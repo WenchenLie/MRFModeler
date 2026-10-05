@@ -1,6 +1,6 @@
 """MRFHelper public package interface."""
 
-__version__ = "2.6.1"
+__version__ = "2.6.2"
 
 from .mrf_helper import Frame, from_json
 from .rc_frame import RCFrame
