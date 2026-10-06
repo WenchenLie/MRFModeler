@@ -22,7 +22,7 @@ class RCFrame(Frame):
     """Parameterized two-dimensional reinforced-concrete moment frame."""
 
     # OpenSAS parses this value as its model-script contract version.
-    version = "2.6.2"
+    version = "2.6.3"
     frame_type = "reinforced_concrete"
 
     def finish_building_geometry(self) -> None:
