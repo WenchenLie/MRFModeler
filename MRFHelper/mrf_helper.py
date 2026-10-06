@@ -173,6 +173,7 @@ def from_json(file: str | Path) -> Frame:
     # Step 3
     load_data = _required(dict_info, "load_and_material", "root")
     _set_direct_nodal_inputs(frame, load_data)
+    frame.load_and_material.set_damping_ratio(load_data.get("damping_ratio", 0.02))
     frame.load_and_material.set_axial_load_ratio_amplification_factor(
         load_data.get("axial_load_ratio_amplification_factor", 1.25)
     )

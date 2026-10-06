@@ -63,6 +63,7 @@ def write_info_to_dict(frame: Frame) -> dict:
                 for floor in range(2, frame.N + 2)
             ],
         },
+        "damping_ratio": frame.load_and_material.damping_ratio,
         "axial_load_ratio_amplification_factor": (
             frame.load_and_material.axial_load_ratio_amplification_factor
         ),
@@ -152,6 +153,7 @@ def write_info_to_tcl(frame: Frame, file_name="Model Information") -> str:
     text += f"\tNominal yield strength of beams [MPa]: {loads.fy_beam}\n"
     text += f"\tNominal yield strength of columns [MPa]: {loads.fy_column}\n"
     text += f"\tPoisson ratio: {loads.poisson_ratio}\n\n"
+    text += f"Rayleigh damping ratio: {loads.damping_ratio}\n\n"
     text += (
         "Column axial-load-ratio amplification factor: "
         f"{loads.axial_load_ratio_amplification_factor}\n\n"

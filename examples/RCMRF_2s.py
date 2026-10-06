@@ -31,6 +31,7 @@ loads.set_loads(
     leaning_column=[20700, 9900],
 )
 loads.set_axial_load_ratio_amplification_factor(1.25)
+loads.set_damping_ratio(0.05)  # 5% Rayleigh damping for time-history analysis
 loads.set_material(fc_expected=40, ec=30000, fy_expected=460, es=200000, poisson_ratio=0.2)
 frame.finish_load_and_material()
 

@@ -30,6 +30,7 @@ frame.load_and_material.set_loads(
     leaning_column=[0, 0, 0],
 )
 frame.load_and_material.set_material(206000, 248, 345)
+frame.load_and_material.set_damping_ratio(0.02)
 frame.finish_load_and_material()
 
 # Step-4, set connection and boundary condition

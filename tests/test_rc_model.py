@@ -28,6 +28,7 @@ def build_rc_frame(
     joint_panel_model: str = "Elastic",
     *,
     axial_load_ratio_amplification_factor: float = 1.25,
+    damping_ratio: float = 0.02,
 ) -> RCFrame:
     frame = RCFrame("RC_Test", notes="RC regression model")
     geometry = frame.building_geometry
@@ -46,6 +47,7 @@ def build_rc_frame(
     loads.set_loads([[75000, 75000]], [20000])
     loads.set_axial_load_ratio_amplification_factor(axial_load_ratio_amplification_factor)
     loads.set_material(40, 30000, 460)
+    loads.set_damping_ratio(damping_ratio)
     frame.finish_load_and_material()
 
     frame.connection_and_boundary.set_base_support("Fixed")
@@ -506,16 +508,26 @@ def test_joint2d_is_drawn_as_rectangle() -> None:
     plt.close(figure)
 
 
-def test_json_round_trip_requires_external_section_csv(tmp_path: Path) -> None:
-    frame = build_rc_frame()
+@pytest.mark.parametrize("damping_ratio", [None, 0.0, 0.05])
+def test_json_round_trip_requires_external_section_csv(
+    tmp_path: Path, damping_ratio: float | None
+) -> None:
+    expected_damping = 0.02 if damping_ratio is None else damping_ratio
+    frame = build_rc_frame(damping_ratio=expected_damping)
     model_path = tmp_path / "rc.json"
-    model_path.write_text(json.dumps(frame.dict_info), encoding="utf-8")
+    model_data = frame.dict_info.copy()
+    model_data["load_and_material"] = frame.dict_info["load_and_material"].copy()
+    if damping_ratio is None:
+        del model_data["load_and_material"]["damping_ratio"]
+    model_path.write_text(json.dumps(model_data), encoding="utf-8")
 
     loaded = from_json(model_path)
     assert isinstance(loaded, RCFrame)
     assert loaded.structural_components.section_library["S250x500"].b == 250
     assert loaded.structural_components.section_path == EXAMPLE_CSV.resolve()
     assert loaded.joint_materials["2:1"] == frame.joint_materials["2:1"]
+    assert loaded.load_and_material.damping_ratio == pytest.approx(expected_damping)
+    assert loaded.dict_info["load_and_material"]["damping_ratio"] == pytest.approx(expected_damping)
     data = json.loads(model_path.read_text(encoding="utf-8"))
     assert set(data["building_geometry"]) == {"story_height", "bay_length"}
     components = data["structural_components"]
@@ -608,7 +620,7 @@ OPEN_SAS_PATTERNS = (
 
 
 def test_generated_rc_scripts_and_opensas_contract(tmp_path: Path) -> None:
-    frame = build_rc_frame()
+    frame = build_rc_frame(damping_ratio=0.05)
     paths = frame.generate_scripts(tmp_path)
     assert set(paths) == {"tcl", "python", "json", "image", "html", "information"}
     assert all(path.exists() for path in paths.values())
@@ -623,10 +635,16 @@ def test_generated_rc_scripts_and_opensas_contract(tmp_path: Path) -> None:
     assert "柱等效刚度计算结果" in html_source
     assert "<pre>" not in html_source
     assert "<svg" in html_source
+    assert "Rayleigh 阻尼比" in html_source
+    assert json.loads(paths["json"].read_text(encoding="utf-8"))["load_and_material"][
+        "damping_ratio"
+    ] == pytest.approx(0.05)
 
     tcl = paths["tcl"].read_text(encoding="utf-8")
     python_source = paths["python"].read_text(encoding="utf-8")
     compile(python_source, str(paths["python"]), "exec")
+    assert "set zeta 0.05;" in tcl
+    assert "zeta = 0.05" in python_source
     column_elements_start = tcl.index("# RC column elastic elements")
     beam_elements_start = tcl.index("# RC beam elastic elements")
     joints_start = tcl.index("# RC beam-column joints (nodes, material, and Joint2D element)")
@@ -681,6 +699,7 @@ def test_generated_rc_scripts_and_opensas_contract(tmp_path: Path) -> None:
     assert len(mass_rows) == frame.N
     assert all(row.count("mass ") == frame.axis for row in mass_rows)
     information_source = paths["information"].read_text(encoding="utf-8")
+    assert "Rayleigh damping ratio: 0.05" in information_source
     for title in (
         "1. Building Geometry",
         "2. Structural Components",

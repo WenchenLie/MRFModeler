@@ -254,6 +254,7 @@ def write_rc_info_to_dict(frame: RCFrame) -> dict:
                     for floor in range(2, frame.N + 2)
                 ],
             },
+            "damping_ratio": loads.damping_ratio,
             "axial_load_ratio_amplification_factor": (loads.axial_load_ratio_amplification_factor),
             "material": {
                 "fc_expected": loads.fc_expected,
@@ -321,6 +322,7 @@ def write_rc_info_to_text(frame: RCFrame) -> str:
     text += f"\tReinforcement yield strength fy [MPa]: {loads.fy_expected}\n"
     text += f"\tReinforcement elastic modulus Es [MPa]: {loads.es}\n"
     text += f"\tPoisson ratio: {loads.poisson_ratio}\n\n"
+    text += f"Rayleigh damping ratio: {loads.damping_ratio}\n\n"
     text += (
         "Column axial-load-ratio amplification factor: "
         f"{loads.axial_load_ratio_amplification_factor}\n\n"
@@ -406,6 +408,7 @@ def rc_frame_from_dict(data: dict, *, base_directory: str | Path = ".") -> RCFra
 
     load_data = _required(data, "load_and_material", "root")
     _set_direct_nodal_inputs(frame, load_data)
+    frame.load_and_material.set_damping_ratio(load_data.get("damping_ratio", 0.02))
     frame.load_and_material.set_axial_load_ratio_amplification_factor(
         load_data.get("axial_load_ratio_amplification_factor", 1.25)
     )

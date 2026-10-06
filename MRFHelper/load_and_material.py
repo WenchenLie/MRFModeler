@@ -29,6 +29,7 @@ class LoadAndMaterial:
         self.fy_beam = None
         self.fy_column = None
         self.poisson_ratio = 0.3
+        self.damping_ratio = 0.02
         self.axial_load_ratio_amplification_factor = 1.25
 
     def _validate_nodal_values(
@@ -114,6 +115,17 @@ class LoadAndMaterial:
         self.fy_column = fy_column
         self.poisson_ratio = poisson_ratio
 
+    def set_damping_ratio(self, damping_ratio: int | float) -> None:
+        """Set the Rayleigh damping fraction for TH analysis (0.05 means 5%).
+
+        The default is 0.02. Accept finite values between zero and one,
+        including zero for undamped analysis.
+        """
+        validation.check_int_float(damping_ratio, [0, 1], name="damping_ratio")
+        if not math.isfinite(damping_ratio):
+            raise ValueError("Variable `damping_ratio` must be finite")
+        self.damping_ratio = float(damping_ratio)
+
     def set_axial_load_ratio_amplification_factor(self, factor: int | float) -> None:
         """Set the column axial-load-ratio multiplier for overturning effects."""
         validation.check_int_float(factor, name="axial_load_ratio_amplification_factor")
@@ -122,6 +134,7 @@ class LoadAndMaterial:
         self.axial_load_ratio_amplification_factor = float(factor)
 
     def _finished(self) -> None:
+        self.set_damping_ratio(self.damping_ratio)
         if self.elastic_modulus is None:
             raise ValueError("Young's modulus has not been defined")
         if self.fy_beam is None:

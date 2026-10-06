@@ -89,6 +89,7 @@ def _load_material_report(frame: Any) -> str:
         ]
         for key, value in material.items()
     ]
+    material_rows.append(["Rayleigh 阻尼比", _display_value(data["damping_ratio"]), "—"])
     material_rows.append(
         [
             "柱轴压比放大系数",

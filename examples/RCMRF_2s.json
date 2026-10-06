@@ -33,6 +33,7 @@
             ],
             "leaning_column": [20700, 9900]
         },
+        "damping_ratio": 0.05,
         "axial_load_ratio_amplification_factor": 1.25,
         "material": {
             "fc_expected": 40,

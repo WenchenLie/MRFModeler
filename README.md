@@ -64,9 +64,12 @@ frame.load_and_material.set_material(
 )
 # 考虑倾覆力矩使柱轴压比放大 25%；不改变实际施加的重力荷载与质量。
 frame.load_and_material.set_axial_load_ratio_amplification_factor(1.25)
+frame.load_and_material.set_damping_ratio(0.05)  # 时程分析采用 5% Rayleigh 阻尼
 ```
 
 程序不再根据面荷载、组合系数或建筑面积计算和分配荷载、质量。`moment_frame` 的行数和 `leaning_column` 的长度必须等于结构层数，索引顺序自动对应楼层 `2..N+1`；`moment_frame` 每行按轴线从左至右排列，长度等于框架轴线数。质量单位为 t，竖向荷载单位为 N，且两者均须为非负有限数；生成 OpenSees 重力荷载时程序自动把向下幅值转换为负 Y 方向。柱轴压比仅累计抗弯框架节点的竖向荷载，虚拟柱荷载不计入抗弯框架柱轴力。
+
+钢框架和 RC 框架均可在 `finish_load_and_material()` 前调用 `set_damping_ratio()` 设置时程分析的 Rayleigh 阻尼比。阻尼比是 `0–1` 范围内的有限小数，`0.05` 表示 5%，`0` 表示无阻尼，未指定时默认为 `0.02`。JSON 中对应字段为 `load_and_material.damping_ratio`；旧 JSON 省略该字段时仍使用 2%。指定值会写入 Tcl、OpenSeesPy、导出的 JSON 和建模报告，PO/CP 静力分析不使用阻尼。
 
 `fc_expected` 和 `fy_expected` 均为期望强度。`axial_load_ratio_amplification_factor` 必须不小于 `1.0`，仅放大用于柱铰、RC 柱有效刚度和 RC 节点域计算的柱轴力；不会改变用户输入并实际施加的竖向荷载或质量。钢框架和 RC 框架的默认值均为 `1.25`。有效刚度不再由用户输入：梁的 `EIy/EIg` 固定为 `0.3`；每根柱先按放大后的轴压比计算 `0.75 × (0.1 + PPy)^0.8`，再将结果限制在 `0.2–0.6`，其中 `PPy = 放大系数 × P/(b·h·fc)`。
 

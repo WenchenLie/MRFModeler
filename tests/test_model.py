@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import json
 from pathlib import Path
 
@@ -9,7 +10,7 @@ from wsection import WSection
 from MRFHelper import Frame, from_json
 
 
-def build_one_story_frame(*, finish: bool = True) -> Frame:
+def build_one_story_frame(*, finish: bool = True, damping_ratio: float = 0.02) -> Frame:
     """Build a small model through the unchanged four-step public API."""
     frame = Frame("OneStory", notes="regression model")
     geometry = frame.building_geometry
@@ -25,6 +26,7 @@ def build_one_story_frame(*, finish: bool = True) -> Frame:
     loads.set_masses([[9000 / 9800, 9000 / 9800]], [2.5])
     loads.set_loads([[45000, 45000]], [108000])
     loads.set_material(206000, 300, 400)
+    loads.set_damping_ratio(damping_ratio)
     frame.finish_load_and_material()
 
     frame.connection_and_boundary.set_base_support("Fixed")
@@ -124,9 +126,14 @@ def test_missing_column_story_is_reported() -> None:
         frame.finish_structural_components()
 
 
-def test_json_loader_uses_current_keys(tmp_path: Path) -> None:
+@pytest.mark.parametrize("damping_ratio", [None, 0.0, 0.05])
+def test_json_loader_uses_current_keys(tmp_path: Path, damping_ratio: float | None) -> None:
     frame = build_one_story_frame()
     data = frame.dict_info
+    if damping_ratio is None:
+        del data["load_and_material"]["damping_ratio"]
+    else:
+        data["load_and_material"]["damping_ratio"] = damping_ratio
     data["connection_and_boundary"]["soil_constraint"] = [1]
     data["connection_and_boundary"]["rigid_diaphragm"] = False
     model_file = tmp_path / "model.json"
@@ -144,6 +151,9 @@ def test_json_loader_uses_current_keys(tmp_path: Path) -> None:
         == frame.load_and_material.leaning_column_node_vertical_load
     )
     assert loaded.load_and_material.axial_load_ratio_amplification_factor == pytest.approx(1.25)
+    expected_damping = 0.02 if damping_ratio is None else damping_ratio
+    assert loaded.load_and_material.damping_ratio == pytest.approx(expected_damping)
+    assert loaded.dict_info["load_and_material"]["damping_ratio"] == pytest.approx(expected_damping)
     assert loaded.connection_and_boundary.soil_constraint == [1]
     assert loaded.connection_and_boundary.rigid_diaphragm is False
 
@@ -192,15 +202,66 @@ def test_generation_is_headless_and_returns_artifacts(
         "//",
         "nodal_mass",
         "nodal_vertical_load",
+        "damping_ratio",
         "axial_load_ratio_amplification_factor",
         "material",
     }
     assert load_data["nodal_mass"]["moment_frame"][0] == pytest.approx([9000 / 9800, 9000 / 9800])
     assert load_data["nodal_vertical_load"]["leaning_column"][0] == 108000
     assert json_source["load_and_material"]["axial_load_ratio_amplification_factor"] == 1.25
+    assert load_data["damping_ratio"] == pytest.approx(0.02)
+    assert "set zeta 0.02;" in tcl_source
+    assert "zeta = 0.02" in python_source
 
     with pytest.raises(FileExistsError, match="Refusing to overwrite"):
         frame.generate_scripts(tmp_path, overwrite=False)
+
+
+@pytest.mark.parametrize("damping_ratio", [0.0, 0.05, 1.0])
+def test_generated_rayleigh_damping_matches_target_modes(
+    tmp_path: Path, damping_ratio: float
+) -> None:
+    frame = build_one_story_frame(damping_ratio=damping_ratio)
+    paths = frame.generate_scripts(tmp_path)
+    source = paths["python"].read_text(encoding="utf-8")
+    tcl = paths["tcl"].read_text(encoding="utf-8")
+    assert f"set zeta {damping_ratio};" in tcl
+    assert json.loads(paths["json"].read_text(encoding="utf-8"))["load_and_material"][
+        "damping_ratio"
+    ] == pytest.approx(damping_ratio)
+    assert f"Rayleigh damping ratio: {damping_ratio}" in paths["information"].read_text(
+        encoding="utf-8"
+    )
+    assert "Rayleigh 阻尼比" in paths["html"].read_text(encoding="utf-8")
+
+    # Evaluate only the emitted coefficient assignments with known modal frequencies.
+    assignments = [
+        node
+        for node in ast.walk(ast.parse(source))
+        if isinstance(node, ast.Assign)
+        and isinstance(node.targets[0], ast.Name)
+        and node.targets[0].id in {"zeta", "a0", "a1", "a1_mod"}
+    ]
+    assert len(assignments) == 4
+    namespace = {"w1": 2.0, "w3": 10.0, "n": 10.0}
+    exec(
+        compile(ast.Module(body=assignments, type_ignores=[]), str(paths["python"]), "exec"),
+        namespace,
+    )
+    for frequency in (namespace["w1"], namespace["w3"]):
+        modal_damping = namespace["a0"] / (2 * frequency) + namespace["a1"] * frequency / 2
+        assert modal_damping == pytest.approx(damping_ratio)
+    assert namespace["a1_mod"] / 1.1 == pytest.approx(namespace["a1"])
+
+
+@pytest.mark.parametrize(
+    "damping_ratio", [-0.01, 1.01, float("nan"), float("inf"), -float("inf"), True, "0.05", None]
+)
+def test_invalid_damping_ratio_is_rejected(damping_ratio) -> None:
+    loads = build_one_story_frame(finish=False).load_and_material
+    with pytest.raises(ValueError, match="damping_ratio"):
+        loads.set_damping_ratio(damping_ratio)
+    assert loads.damping_ratio == pytest.approx(0.02)
 
 
 def test_package_module_filenames_are_snake_case() -> None:

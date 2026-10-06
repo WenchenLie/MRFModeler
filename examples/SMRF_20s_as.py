@@ -162,6 +162,7 @@ frame.load_and_material.set_loads(
     [3075525.45, *[3070145.25 for _ in range(18)], 2761607.25],
 )
 frame.load_and_material.set_material(206000, 345, 345)
+frame.load_and_material.set_damping_ratio(0.02)
 frame.finish_load_and_material()
 
 # Step-4, set connection and boundary condition
